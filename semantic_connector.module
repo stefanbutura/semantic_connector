@@ -1,0 +1,6 @@
+<?php
+
+// Always add the general Semantic Connector Resource library.
+function semantic_connector_page_attachments(array &$page) {
+  $page['#attached']['library'][] = 'semantic_connector/general';
+}

@@ -1,0 +1,28 @@
+general:
+  version: VERSION
+  css:
+    theme:
+      css/semantic_connector.css: {}
+  js:
+    js/semantic_connector.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+admin_area:
+  version: VERSION
+  css:
+    theme:
+      css/semantic_connector.admin.css: {}
+  js:
+    js/semantic_connector.admin.js: {}
+  dependencies:
+    - core/jquery
+
+tablesorter:
+  version: VERSION
+  js:
+    /libraries/tablesorter/jquery.tablesorter.min.js: {}
+  dependencies:
+    - core/jquery
