@@ -22,6 +22,7 @@ abstract class SemanticConnectorSonrApi {
   protected $id;
   protected $customAttributes;
   protected $connection;
+  protected $graphSearchPath = 'GraphSearch';
 
   /**
    * The constructor of the SonrApi-class.
@@ -30,13 +31,18 @@ abstract class SemanticConnectorSonrApi {
    *   URL of the endpoint of the PoolParty-server.
    * @param string $credentials
    *   Username and password if required (format: "username:password").
+   * @param string $custom_graphsearch_path
+   *   The customizable path to the GraphSearch instance
    */
-  public function __construct($endpoint, $credentials = '') {
+  public function __construct($endpoint, $credentials = '', $custom_graphsearch_path = '') {
     $this->connection = new SemanticConnectorCurlConnection($endpoint, $credentials);
     $this->customAttributes = array(
       self::ATTR_SOURCE,
       self::ATTR_AUTHOR,
     );
+    if (!empty($custom_graphsearch_path)) {
+      $this->graphSearchPath = $custom_graphsearch_path;
+    }
   }
 
   /**
@@ -144,7 +150,7 @@ abstract class SemanticConnectorSonrApi {
       // Remove error messages from the failed GET request.
       drupal_get_messages('error');
 
-      $resource_path = '/GraphSearch/admin';
+      $resource_path = '/' . $this->graphSearchPath . '/admin';
       $sonr_website_html = $this->connection->get($resource_path, array(
         'headers' => array('Accept' => 'text/html'),
       ));

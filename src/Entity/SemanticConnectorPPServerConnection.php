@@ -153,8 +153,15 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
       }
       // sOnr API.
       else {
+        // Use an overridden GraphSearch path if available.
+        $connection_overrides = \Drupal::config('semantic_connector.settings')->get('override_connections');
+        $custom_graphsearch_path = '';
+        if (isset($connection_overrides[$this->id()]) && isset($connection_overrides[$this->id()]['graphsearch_path'])) {
+          $custom_graphsearch_path = $connection_overrides[$this->id()]['graphsearch_path'];
+        }
+
         /** @var SemanticConnectorSonrApi $sonr_api */
-        $sonr_api = new $api_version_info['api_class_name']($this->url, $credentials);
+        $sonr_api = new $api_version_info['api_class_name']($this->url, $credentials, $custom_graphsearch_path);
         $sonr_api->setId($this->id);
         return $sonr_api;
       }
@@ -216,7 +223,8 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
         $credentials = !empty($this->credentials['username']) ? $this->credentials['username'] . ':' . $this->credentials['password'] : '';
 
         /** @var SemanticConnectorSonrApi $sonr_api */
-        $sonr_api = new $version_check_class_name($this->url, $credentials);
+        $sonr_api = new $version_check_class_name['api_class_name']($this->url, $credentials, $this->getGraphSearchPath());
+
         $this->config['graphsearch_configuration']['version'] = $sonr_api->getVersion();
       }
       $version_infos['installed_version'] = $this->config['graphsearch_configuration']['version'];
@@ -238,6 +246,29 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     $version_infos['api_class_name'] = $class_prefix . str_replace('.', '_', $class_version);
 
     return $version_infos;
+  }
+
+  /**
+   * Get the path to the GraphSearch connected to the PP server.
+   *
+   * @return string
+   *   The path to the GraphSearch instance
+   */
+  public function getGraphSearchPath() {
+    $graphsearch_path = '';
+    if (isset($this->config['graphsearch_configuration']) && isset($this->config['graphsearch_configuration']['version']) || empty($this->config['graphsearch_configuration']['version'])) {
+      $graphsearch_path = 'sonr-backend';
+      if (version_compare($this->config['graphsearch_configuration']['version'], '5.6.0', '>=')) {
+        $graphsearch_path = 'GraphSearch';
+        // Use an overridden GraphSearch path if available.
+        $connection_overrides = \Drupal::config('semantic_connector.settings')->get('override_connections');
+        if (isset($connection_overrides[$this->id()]) && isset($connection_overrides[$this->id()]['graphsearch_path'])) {
+          $graphsearch_path = $connection_overrides[$this->id()]['graphsearch_path'];
+        }
+      }
+    }
+
+    return $graphsearch_path;
   }
 
   /**

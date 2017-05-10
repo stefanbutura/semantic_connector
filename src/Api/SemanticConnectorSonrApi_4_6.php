@@ -372,8 +372,9 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
       self::ATTR_SOURCE => array(
         'name' => 'Source',
         'selected' => 1,
-        'aggregated' => 0,
+        'facet_mode' => 'list',
         'max-items' => 1,
+        'tree_depth' => 1,
         'facet_id' => self::ATTR_SOURCE,
       ),
     );
@@ -666,7 +667,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     foreach ($facets as $facet) {
       $facet_parameters[] = array(
         'field' => $facet['facet_id'],
-        'facetMode' => $facet['aggregated'] ? 'aggregate' : 'list',
+        'facetMode' => $facet['facet_mode'],
       );
     }
 

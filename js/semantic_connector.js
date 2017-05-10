@@ -7,7 +7,7 @@
 (function ($, Drupal, drupalSettings) {
   Drupal.behaviors.semanticConnectorConceptDestinations = {
     attach: function (context) {
-      // check if the individual PP servers are available.
+      // Check if the individual PP servers are available.
       $("div.semantic-connector-led").each(function() {
         setLed($(this));
       });
