@@ -14,6 +14,14 @@ semantic_connector.overview:
   requirements:
     _permission: 'administer semantic connector'
 
+semantic_connector.config:
+  path: '/admin/config/semantic-drupal/semantic-connector/config'
+  defaults:
+    _form: '\Drupal\semantic_connector\Form\SemanticConnectorConfigForm'
+    _title: 'Configuration'
+  requirements:
+    _permission: 'administer semantic connector'
+
 
 entity.pp_server_connection.add_form:
   path: '/admin/config/semantic-drupal/semantic-connector/add-connection/pp-server'

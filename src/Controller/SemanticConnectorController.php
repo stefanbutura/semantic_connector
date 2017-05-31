@@ -10,6 +10,7 @@ use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\pp_graphsearch_similar\Entity\PPGraphSearchSimilarConfig;
 use Drupal\semantic_connector\Entity\SemanticConnectorConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorPPServerConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorSparqlEndpointConnection;
@@ -95,7 +96,8 @@ class SemanticConnectorController extends ControllerBase {
     // Get all Similar Content configurations if available.
     $pp_graphsearch_similar_configs = array();
     if (\Drupal::moduleHandler()->moduleExists('pp_graphsearch_similar')) {
-      $similar_configs = pp_graphsearch_similar_config_load_multiple();
+      $similar_configs = PPGraphSearchSimilarConfig::loadMultiple();
+      /** @var PPGraphSearchSimilarConfig $similar_config */
       foreach ($similar_configs as $similar_config) {
         $key = $similar_config->getConnectionId() . '|' . $similar_config->getProjectId();
         $pp_graphsearch_similar_configs[$key][] = $similar_config;
@@ -220,16 +222,15 @@ class SemanticConnectorController extends ControllerBase {
                     $similar_project_uses = array();
                     $key = $server_id . '|' . $project['id'];
                     if (isset($pp_graphsearch_similar_configs[$key])) {
+                      /** @var PPGraphSearchSimilarConfig $similar_config */
                       foreach ($pp_graphsearch_similar_configs[$key] as $similar_config) {
-                        $url = 'admin/config/semantic-drupal/$project_graphsearch_content-webmining/$project_graphsearch_content-webmining-similar/' . $similar_config->id();
-                        $similar_project_uses[] = '<li>' . Link::fromTextAndUrl($similar_config->getTitle(), Url::fromUri($url, array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
+                        $similar_project_uses[] = '<li>' . Link::fromTextAndUrl($similar_config->getTitle(), Url::fromRoute('entity.pp_graphsearch_similar.edit_config_form', array('pp_graphsearch_similar' => $similar_config->id()), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
                       }
                     }
                     if (!empty($similar_project_uses)) {
                       $project_graphsearch_content .= '<ul>' . implode('', $similar_project_uses) . '</ul>';
                     }
-                    $url = 'admin/config/semantic-drupal/$project_graphsearch_content-webmining/$project_graphsearch_content-webmining-similar/add/' . $server_id . '/' . $project['id'];
-                    $project_graphsearch_content .= '<div class="add-configuration">' . Link::fromTextAndUrl(t('Add new Similar Content widget'), Url::fromUri($url, array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</div>';
+                    $project_graphsearch_content .= '<div class="add-configuration">' . Link::fromTextAndUrl(t('Add new Similar Content widget'), Url::fromRoute('entity.pp_graphsearch_similar.fixed_connection_add_form', array('connection' => $server_id, 'project_id' => $project['id']), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</div>';
                   }
                 }
                 // There is no PoolParty GraphSearch server available for this project on the PP server.

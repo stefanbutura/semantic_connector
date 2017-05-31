@@ -557,8 +557,8 @@ class SemanticConnector {
     if (\Drupal::moduleHandler()->moduleExists('pp_graphsearch')) {
       $available_destinations['pp_graphsearch'] = array(
         'weight' => 2,
-        'label' => t('sOnr webMining Page'),
-        'list_title' => 'sOnr webMining Page',
+        'label' => t('PoolParty GraphSearch Page'),
+        'list_title' => 'PoolParty GraphSearch Page',
         'use' => FALSE,
       );
     }
