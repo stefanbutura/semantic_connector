@@ -12,6 +12,7 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Drupal\powertagging\Entity\PowerTaggingConfig;
 use Drupal\pp_graphsearch\Entity\PPGraphSearchConfig;
+use Drupal\pp_graphsearch\PPGraphSearch;
 use Drupal\pp_taxonomy_manager\Entity\PPTaxonomyManagerConfig;
 use Drupal\semantic_connector\Entity\SemanticConnectorConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorPPServerConnection;
@@ -389,16 +390,13 @@ class SemanticConnector {
     $themed_items = array();
     $destinations = self::getDestinations();
 
-    // @todo: add the theming as soon as the PowerTagging module is in place.
-    /*if (!empty($concepts)) {
+    if (!empty($concepts)) {
       // Get all URI --> tid connections to avoid lots of database requests.
       $uri_tid_mapping = array();
       if ($destinations['taxonomy_term_detail_page']['use'] && !in_array('taxonomy_term_detail_page', $ignore_destinations)) {
-        $uri_tid_mapping = db_select('field_data_field_uri', 'u')
-          ->fields('u', array('field_uri_value', 'entity_id'))
-          ->condition('u.entity_type', 'taxonomy_term')
-          ->execute()
-          ->fetchAllKeyed();
+        $query = \Drupal::database()->select('taxonomy_term__field_uri', 'u');
+        $query->fields('u', array('field_uri_uri', 'entity_id'));
+        $uri_tid_mapping = $query->execute()->fetchAllKeyed();
       }
 
       $smart_glossary_destinations = array();
@@ -407,22 +405,28 @@ class SemanticConnector {
         $server_config = $pp_server_connection->getConfig();
         if (isset($server_config['projects']) && !empty($server_config['projects'])) {
           foreach ($server_config['projects'] as $project) {
-            if ($project->id == $project_id) {
-              if (isset($project->sparql_endpoint_url)) {
-                $query = db_select('semantic_connector_connections', 'c')
-                  ->condition('c.type', 'sparql_endpoint')
-                  ->condition('c.url', $project->sparql_endpoint_url);
-                $query->join('smart_glossary', 'g', 'g.connection_id = c.connection_id');
-                $query->fields('g', array('sg_id', 'title', 'base_path', 'language_mapping', 'advanced_settings'));
-                $smart_glossary_configs = $query->execute()
-                  ->fetchAllAssoc('sg_id');
+            if ($project['id'] == $project_id) {
+              if (isset($project['sparql_endpoint_url'])) {
+                // Get all IDs of SPARQL endpoint connections matching the
+                // project's sparql endpoints url.
+                $connection_query = \Drupal::entityQuery('sparql_endpoint_connection');
+                $connection_query->condition('url', $project['sparql_endpoint_url']);
+                $sparql_endpoint_connection_ids = $connection_query->execute();
+                if (!empty($sparql_endpoint_connection_ids)) {
+                  // Load all Smart Glossary configurations for the connection.
+                  $smart_glossary_configs = \Drupal::entityTypeManager()
+                    ->getStorage('smart_glossary')
+                    ->loadByProperties(array('connection_id' => array_keys($sparql_endpoint_connection_ids)));
 
-                foreach ($smart_glossary_configs as $smart_glossary_config) {
-                  $language_mapping = unserialize($smart_glossary_config->language_mapping);
-                  $advanced_settings = unserialize($smart_glossary_config->advanced_settings);
-                  //@todo: add multilanguage support.
-                  if (isset($language_mapping[language_default('language')]) && !empty($language_mapping[language_default('language')]['glossary_languages'][0]) && (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations'])) {
-                    $smart_glossary_destinations[$smart_glossary_config->base_path . '/' . $language_mapping[language_default('language')]['glossary_languages'][0]] =  $smart_glossary_config->title;
+                  /** @var SmartGlossaryConfig $smart_glossary_config */
+                  foreach ($smart_glossary_configs as $smart_glossary_config) {
+                    $language_mapping = $smart_glossary_config->getLanguageMapping();
+                    $advanced_settings = $smart_glossary_config->getAdvancedSettings();
+                    //@todo: add multilanguage support.
+                    $default_language = \Drupal::languageManager()->getDefaultLanguage()->getId();
+                    if (isset($language_mapping[$default_language]) && !empty($language_mapping[$default_language]['glossary_languages'][0]) && (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations'])) {
+                      $smart_glossary_destinations[$smart_glossary_config->getBasePath() . '/' . $language_mapping[$default_language]['glossary_languages'][0]] = $smart_glossary_config->getTitle();
+                    }
                   }
                 }
               }
@@ -434,28 +438,22 @@ class SemanticConnector {
 
       $pp_graphsearch_destinations = array();
       if (isset($destinations['pp_graphsearch']) && $destinations['pp_graphsearch']['use'] && !in_array('pp_graphsearch', $ignore_destinations)) {
-        global $theme;
         // Get all block paths of sOnr webmining blocks, which use the given
         // connection ID and project ID.
-        $query = db_select('pp_graphsearch_sets', 's')
-          ->fields('s', array('swid', 'title', 'config'))
-          ->condition('s.connection_id', $connection_id)
-          ->condition('s.project_id', $project_id);
-        $query->join('block', 'b', 'b.delta = CONCAT(\'pp_graphsearch_content_\', s.swid) AND theme = \'' . $theme . '\'');
-        $query->fields('b', array('pages'))
-          ->condition('b.visibility', 1);
-        $pp_graphsearch_configs = $query->execute()
-          ->fetchAllAssoc('swid');
+        $pp_graphsearch_configs = \Drupal::entityTypeManager()
+          ->getStorage('pp_graphsearch')
+          ->loadByProperties(array('connection_id' => $connection_id, 'project_id' => $project_id));
 
-        foreach ($pp_graphsearch_configs as $pp_graphsearch_config) {
-          $advanced_settings = unserialize($pp_graphsearch_config->config);
-          if (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations']) {
-            // Use the first concrete path of the block.
-            $pp_graphsearch_block_path_list = explode(PHP_EOL, $pp_graphsearch_config->pages);
-            foreach ($pp_graphsearch_block_path_list as $pp_graphsearch_block_path) {
-              if (strpos($pp_graphsearch_block_path, '*') === FALSE) {
-                $pp_graphsearch_destinations[($pp_graphsearch_block_path == '<front>' ? '' : $pp_graphsearch_block_path)] = $pp_graphsearch_config->title;
-                break;
+        if (!empty($pp_graphsearch_configs)) {
+          /** @var PPGraphSearchConfig $pp_graphsearch_config */
+          foreach ($pp_graphsearch_configs as $pp_graphsearch_config) {
+            $advanced_settings = $pp_graphsearch_config->getConfig();
+            if (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations']) {
+              // Use the first concrete path of the block.
+              $pp_graphsearch = new PPGraphSearch($pp_graphsearch_config);
+              $pp_graphsearch_block_path = $pp_graphsearch->getBlockPath();
+              if (!empty($pp_graphsearch_block_path)) {
+                $pp_graphsearch_destinations[($pp_graphsearch_block_path == '<front>' ? '' : $pp_graphsearch_block_path)] = $pp_graphsearch_config->getTitle();
               }
             }
           }
@@ -508,6 +506,10 @@ class SemanticConnector {
             if (count($destination_links) > 1) {
               $themed_item_content .= '<ul class="semantic-connector-concept-destination-links">';
               foreach ($destination_links as $destination_link_path => $destination_link_label) {
+                // Remove initial slash in the path if available.
+                if (substr($destination_link_path, 0, 1) == '/') {
+                  $destination_link_path = substr($destination_link_path, 1);
+                }
                 $themed_item_content .= '<li class="semantic-connector-concept-destination-link"><a href="' . $base_path . $destination_link_path . '">' . $destination_link_label . '</a></li>';
               }
               $themed_item_content .= '</ul>';
@@ -517,8 +519,7 @@ class SemanticConnector {
           $themed_items[] = $themed_item_content;
         }
       }
-    }*/
-    $themed_items[] = 'not yet implemented';
+    }
 
     return implode($separator, $themed_items);
   }
