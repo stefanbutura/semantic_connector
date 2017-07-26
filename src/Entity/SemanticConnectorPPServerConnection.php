@@ -107,7 +107,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
       SemanticConnector::deleteConnections('sparql_endpoint', $delete_connection_ids);
     }
 
-    // Update the sOnr configuration.
+    // Update the PoolParty GraphSearch configuration.
     $sonr_config = array();
     $sonr_api = $this->getApi('sonr');
     // Get the version of the sOnr web service.
@@ -119,7 +119,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     );
     $sonr_api = $this->getApi('sonr');
 
-    // If a sOnr webMining server exists, create a config.
+    // If a PoolParty GraphSearch server exists, create a config.
     if (!empty($sonr_version)) {
       // Get the server-side configuration and save it also to the database.
       $sonr_config = $sonr_api->getConfig();
@@ -223,7 +223,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
         $credentials = !empty($this->credentials['username']) ? $this->credentials['username'] . ':' . $this->credentials['password'] : '';
 
         /** @var SemanticConnectorSonrApi $sonr_api */
-        $sonr_api = new $version_check_class_name['api_class_name']($this->url, $credentials, $this->getGraphSearchPath());
+        $sonr_api = new $version_check_class_name($this->url, $credentials, $this->getGraphSearchPath());
 
         $this->config['graphsearch_configuration']['version'] = $sonr_api->getVersion();
       }
