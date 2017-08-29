@@ -2,6 +2,7 @@
 
 namespace Drupal\semantic_connector\Api;
 use Drupal\semantic_connector\SemanticConnectorWatchdog;
+use Drupal\Component\Serialization\Json;
 
 /**
  * Class SemanticConnectorPPXApi_4_6
@@ -31,12 +32,12 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
         'message' => '',
       );
       $resource_path = '/extractor/api/heartbeat';
-      $result = json_decode($this->connection->get($resource_path));
+      $result = Json::decode($this->connection->get($resource_path));
 
-      if (is_object($result) && property_exists($result, 'success')) {
-        $is_available['success'] = $result->success;
-        if (property_exists($result, 'message')) {
-          $is_available['message'] = $result->message;
+      if (is_array($result) && isset($result['success'])) {
+        $is_available['success'] = $result['success'];
+        if (isset($result['message'])) {
+          $is_available['message'] = $result['message'];
         }
       }
     }
@@ -60,9 +61,9 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
       $resource_path = '/extractor/api/projects';
       $result = $this->connection->get($resource_path);
 
-      $projects = json_decode($result);
-      if (is_object($projects) && property_exists($projects, 'projects')) {
-        $projects = $projects->projects;
+      $projects = Json::decode($result);
+      if (is_array($projects) && isset($projects['projects'])) {
+        $projects = $projects['projects'];
       }
     }
 
@@ -75,7 +76,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
 
     if (is_array($projects)) {
       foreach ($projects as &$project) {
-        $project = (object) (array_merge($default_project, (array) $project));
+        $project = array_merge($default_project, $project);
       }
     }
     else {
@@ -184,7 +185,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
           break;
       }
 
-      $concepts = json_decode($result);
+      $concepts = Json::decode($result);
     }
 
     // Files have additional information we don't need --> remove it.
@@ -238,7 +239,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
         'data' => $post_parameters,
       ));
 
-      $suggestion = json_decode($result);
+      $suggestion = Json::decode($result);
     }
 
     if (is_object($suggestion) && property_exists($suggestion, 'suggestedConcepts') && is_array($suggestion->suggestedConcepts)) {

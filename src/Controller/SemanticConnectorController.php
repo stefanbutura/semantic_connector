@@ -166,7 +166,7 @@ class SemanticConnectorController extends ControllerBase {
                 // already built).
                 $project_is_valid = FALSE;
                 foreach ($server_ppx_projects as $server_ppx_project) {
-                  if ($server_ppx_project->uuid == $project['id']) {
+                  if ($server_ppx_project['uuid'] == $project['id']) {
                     $project_is_valid = TRUE;
                     break;
                   }

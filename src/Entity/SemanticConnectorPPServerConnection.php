@@ -69,11 +69,6 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
 
     // Add the projects to the config before saving the PoolParty server.
     $projects = $ppt_api->getProjects();
-    foreach ($projects as &$project) {
-      $project = (array) $project;
-      unset($project);
-    }
-
     $sparql_endpoints_to_remove = array();
     $new_project_urls = array();
     foreach ($projects as $project) {
@@ -191,8 +186,8 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     // list when they are fully functional. The order of the versions is not
     // important.
     $available_api_versions = array(
-      'pp_server' => array('4.6', '5.3', '5.6'),
-      'sonr' => array('4.6', '5.3', '5.6'),
+      'pp_server' => array('4.6', '5.3', '5.6', '6.0'),
+      'sonr' => array('4.6', '5.3', '5.6', '5.7', '6.0'),
     );
 
     $version_infos = array(

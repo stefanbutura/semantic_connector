@@ -171,7 +171,7 @@ class SemanticConnectorCurlConnection {
    * @param string $method
    *   The request-method (GET, POST, PUT, DELETE).
    *
-   * @return object
+   * @return boolean|object
    *   The response object or FALSE on error
    */
   protected function call($resource_path, array $variables = array(), $method = 'GET') {
@@ -200,6 +200,7 @@ class SemanticConnectorCurlConnection {
     // Build the URL.
     $url = $this->buildUrl($resource_path, $variables);
     curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
     switch ($method) {
       case 'GET':
@@ -233,8 +234,13 @@ class SemanticConnectorCurlConnection {
       // Log the error.
       $error = curl_error($ch);
       $response = Json::decode($response);
-      if (empty($error) && isset($response['message'])) {
-        $error = $response['message'];
+      if (empty($error)) {
+        if (isset($response['message'])) {
+          $error = $response['message'];
+        }
+        elseif (isset($response['errorMessage'])) {
+          $error = $response['errorMessage'];
+        }
       }
       $this->watchdog($method, $error, curl_errno($ch), $url);
 

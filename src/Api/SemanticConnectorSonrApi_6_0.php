@@ -4,34 +4,34 @@ namespace Drupal\semantic_connector\Api;
 use Drupal\Component\Serialization\Json;
 
 /**
- * Class SemanticConnectorSonrApi_4_6
+ * Class SemanticConnectorSonrApi_6_0
  *
- * API Class for the version 4.6
+ * API Class for the version 6.0.
  */
-class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
+class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
 
   /**
-   * This method checks if the sOnr service exists and is running.
+   * This method checks if the GraphSearch service exists and is running.
    *
    * @return bool
    *   TRUE if the service is available, FALSE if not
    */
   public function available() {
-    $resource_path = '/sonr-backend/api/heartbeat';
+    $resource_path = '/' . $this->graphSearchPath . '/admin/heartbeat';
     $result = $this->connection->get($resource_path);
 
     return $result === '' ? TRUE : FALSE;
   }
 
   /**
-   * This method gets the configuration of the sOnr webMining server.
+   * This method gets the configuration of the PoolParty GraphSearch server.
    *
-   * @return array
+   * @return boolean|array
    *   project => The PoolParty project used for the extraction
    *   language => The configured language of the content.
    */
   public function getConfig() {
-    $resource_path = '/sonr-backend/api/admin/config';
+    $resource_path = '/' . $this->graphSearchPath . '/admin/config/server';
     $result = $this->connection->get($resource_path);
 
     if ($result === FALSE) {
@@ -41,22 +41,22 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     $data = Json::decode($result);
 
     return array(
-      'project' => ((is_array($data) && isset($data['project'])) ? $data['project'] : ''),
-      'language' => ((is_array($data) && isset($data['language'])) ? $data['language'] : ''),
+      'project' => ((is_array($data) && isset($data['facet'])) ? $data['facet'] : ''),
+      'language' => ((is_array($data) && isset($data['defaultLanguage'])) ? $data['defaultLanguage'] : ''),
     );
   }
 
   /**
-   * This method gets the field configuration of the sOnr webMining server.
+   * This method gets the field configuration of the PoolParty GraphSearch server.
    *
-   * @return array
-   *   searchFields -> Search field setup
-   *   fieldNameMap -> Search field map
-   *   fieldTypeMap -> Search field type map
-   *   uriFields -> Search uri fields.
+   * @return boolean|array
+   *   searchFields -> all available fields in a list
+   *   fieldNameMap -> all fields grouped by name
+   *   fieldTypeMap -> all fields grouped by type
+   *   contextSearchFields -> all fields grouped by field context.
    */
   public function getFieldConfig() {
-    $resource_path = '/sonr-backend/api/config';
+    $resource_path = '/' . $this->graphSearchPath . '/admin/config/fields';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
 
@@ -66,8 +66,9 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
 
     return $facet_list;
   }
+
   /**
-   * This method searches in the sOnr index.
+   * This method searches in the GraphSearch index.
    *
    * @param array $facets
    *   A list of facet objects that should be used for faceting the
@@ -97,27 +98,26 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *      ),   (default: object('field' => 'date', 'direction' => 'DESC')
    *    )
    *
-   * @return array
+   * @return boolean|array
    *   List of items or FALSE in case of an error
    */
   public function search($facets = array(), $filters = array(), $parameters = array()) {
 
-    $resource_path = '/sonr-backend/api/search';
+    $resource_path = '/' . $this->graphSearchPath . '/api/search';
 
     $sort = new \stdClass();
     $sort->field = 'date';
     $sort->direction = 'DESC';
 
     $post_parameters = array(
-      'facets' => $this->prepareFacets($facets),
-      'filters' => $this->prepareFilters($filters),
-      'customAttributes' => $this->customAttributes,
+      'searchFacets' => $this->prepareFacets($facets),
+      'searchFilters' => $this->prepareFilters($filters),
+      'documentFacets' => $this->customAttributes,
       'facetMinCount' => isset($parameters['facetMinCount']) ? $parameters['facetMinCount'] : 1,
       'maxFacetCount' => isset($parameters['maxFacetCount']) ? $parameters['maxFacetCount'] : 10,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
       'start' => isset($parameters['start']) ? $parameters['start'] : 0,
       'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'format' => 'json',
       'sort' => isset($parameters['sort']) ? $parameters['sort'] : $sort,
     );
 
@@ -130,6 +130,8 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     if (!is_array($items)) {
       return FALSE;
     }
+
+    $items = $this->makeSearchCompatible($items);
 
     return $items;
   }
@@ -145,22 +147,21 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *    'count'  => (int)    10,    (default:   10)
    *  )
    *
-   * @return array
+   * @return boolean|array
    *   Array of concepts
    *   array(
    *    'id'      => (string) URI of concept
    *    'label'   => (string) prefLabel of concept
-   *    'context' => (string) label of conceptScheme
+   *    'context' => (string) prefLabel of the broader concept
    *    'field'   => (string) URI of conceptScheme
    *  )
    */
   public function suggest($search_string, $parameters = array()) {
-    $resource_path = '/sonr-backend/api/suggest';
+    $resource_path = '/' . $this->graphSearchPath . '/api/suggest/multi';
     $get_parameters = array(
       'searchString' => $search_string,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
       'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'format' => 'json',
     );
 
     $result = $this->connection->get($resource_path, array(
@@ -179,58 +180,53 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
   /**
    * Get all project dependent facets.
    *
-   * @return array
+   * @return boolean|array
    *   A key value pair list of facets
    */
   public function getFacets() {
     // Get the fields for the facets.
-    $resource_path = '/sonr-backend/api/config';
-    $result = $this->connection->get($resource_path);
-    $facet_list = Json::decode($result);
+    $facet_list = $this->getFieldConfig();
 
     if (!is_array($facet_list)) {
       return FALSE;
     }
 
-    // Add project dependent facets.
+    // Add custom facets.
     $facets = array();
-    $all_fields = array();
-    foreach ($facet_list['searchFields'] as $field) {
-      $all_fields[] = $field['name'];
-      if ($field['type'] == 'URI' && $field['defaultFacet'] == TRUE) {
-        $facets[$field['name']] = $field['label'];
+    if (!empty($facet_list['contextSearchFields']['CustomSearchFieldContext'])) {
+      foreach ($facet_list['contextSearchFields']['CustomSearchFieldContext'] as $field) {
+        $facets[$field['field']] = $field['label'];
       }
     }
 
-    // Add project independent facets.
-    $custom_facets = $this->getCustomFacets();
-    if (!empty($custom_facets)) {
-      foreach ($custom_facets as $field_name => $field_label) {
-        if ((!in_array($field_name, $all_fields) || $field_name == self::ATTR_SOURCE) && $field_name != self::ATTR_SPACE) {
-          $facets[$field_name] = $field_label;
-        }
+    // Add GraphSearch facets.
+    if (!empty($facet_list['contextSearchFields']['GraphSearchFieldContext'])) {
+      foreach ($facet_list['contextSearchFields']['GraphSearchFieldContext'] as $field) {
+        $facets[$field['field']] = $field['label'];
       }
     }
-
     return $facets;
   }
 
   /**
    * Get all custom facets.
    *
-   * @return array
+   * @return boolean|array
    *   A key value pair list of custom facets
    */
   public function getCustomFacets() {
-    // Get the custom fields.
-    $resource_path = '/sonr-backend/api/config/custom';
-    $result = $this->connection->get($resource_path);
-    $custom_facet_list = Json::decode($result);
+    // Get the fields for the facets.
+    $facet_list = $this->getFieldConfig();
 
+    if (!is_array($facet_list)) {
+      return FALSE;
+    }
+
+    // Add custom facets.
     $facets = array();
-    if (isset($custom_facet_list['customSearchFields']) && !empty($custom_facet_list['customSearchFields'])) {
-      foreach ($custom_facet_list['customSearchFields'] as $field) {
-        $facets[$field['name']] = $field['label'];
+    if (!empty($facet_list['contextSearchFields']['CustomSearchFieldContext'])) {
+      foreach ($facet_list['contextSearchFields']['CustomSearchFieldContext'] as $field) {
+        $facets[$field['field']] = $field['label'];
       }
     }
 
@@ -245,18 +241,17 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    * @param array $parameters
    *   Array of the parameters
    *
-   * @return array
+   * @return boolean|array
    *   A key value pair list of facets or FALSE in case of an error
    */
   public function getSimilar($item_id, $parameters = array()) {
-    $resource_path = '/sonr-backend/api/similar';
+    $resource_path = '/' . $this->graphSearchPath . '/api/similar';
     $get_parameters = array(
       'id' => $item_id,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
       'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'format' => 'json',
       'fields' => 'dyn_uri_all_concepts,title,description',
-      'customAttributes' => implode(',', $this->customAttributes),
+      'documentFacets' => $this->customAttributes,
     );
 
     $result = $this->connection->get($resource_path, array(
@@ -268,6 +263,8 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     if (!is_array($similar)) {
       return FALSE;
     }
+
+    $similar = $this->makeSearchCompatible($similar);
 
     return $similar;
   }
@@ -282,12 +279,12 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *     'language' => (string) 'en', (default: 'en')
    *   )
    *
-   * @return array
+   * @return boolean|array
    *   List of concepts, free terms and recommended content or FALSE in case of
    *   an error
    */
   public function getRecommendation($text, $parameters = array()) {
-    $resource_path = '/sonr-backend/api/recommend';
+    $resource_path = '/' . $this->graphSearchPath . '/api/recommend';
     $post_parameters = array(
       'text' => $text,
       'language' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -296,8 +293,6 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
       'numberOfConcepts' => isset($parameters['numberOfConcepts']) ? $parameters['numberOfConcepts'] : 10,
       'numberOfTerms' => isset($parameters['numberOfTerms']) ? $parameters['numberOfTerms'] : 5,
       'fields' => array('dyn_uri_all_concepts', 'title', 'description'),
-      'nativeQuery' => isset($parameters['nativeQuery']) ? $parameters['nativeQuery'] : '',
-      'customAttributes' => $this->customAttributes,
     );
 
     $result = $this->connection->post($resource_path, array(
@@ -314,7 +309,9 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
   }
 
   /**
-   * Returns the link to a file collected from sOnr.
+   * Returns the link to a file collected from GraphSearch.
+   *
+   * INFO: This method does not exists any more.
    *
    * @param string $file_path
    *   Relative path to a file in the collection
@@ -323,38 +320,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   Link to the file in the collection or FALSE in case of an error
    */
   public function getLinkToFile($file_path) {
-    $resource_path = '/sonr-backend/api/collector/';
-    return $this->connection->getEndpoint() . $resource_path . $file_path;
-  }
-
-  /**
-   * Get all agents with their configuration and status.
-   *
-   * @return array
-   *   A list of agents with their configuration and status
-   */
-  public function getAgents() {
-    $resource_path = '/sonr-backend/api/agents/status';
-    $result = $this->connection->get($resource_path);
-
-    $agent_list = Json::decode($result);
-
-    if (!is_array($agent_list)) {
-      return FALSE;
-    }
-
-    $agents = array();
-    if (!is_null($agent_list)) {
-      foreach ($agent_list as $id => $agent) {
-        $agents[$id] = new \stdClass();
-        $agents[$id]->id = $agent['agent']['id'];
-        $agents[$id]->configuration = $agent['agent']['configuration'];
-        $agents[$id]->status = $agent['status'];
-      }
-      usort($agents, array($this, 'sortAgents'));
-    }
-
-    return $agents;
+    return '';
   }
 
   /**
@@ -364,28 +330,16 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   A list of agents
    */
   public function getIndexedAgents() {
-    $agents = array();
+    $agents = [];
 
-    // Make a simple search call with the source facet only.
-    // TODO: This hardcoded config should be from the saved configuration.
-    $facets = array(
-      self::ATTR_SOURCE => array(
-        'name' => 'Source',
-        'selected' => 1,
-        'facet_mode' => 'list',
-        'max-items' => 1,
-        'tree_depth' => 1,
-        'facet_id' => self::ATTR_SOURCE,
-      ),
-    );
-    $parameters = array(
+    $parameters = [
       'count' => 1,
       'start' => 0,
       'maxFacetCount' => 10000,
-    );
-    $search = $this->search($facets, array(), $parameters);
+    ];
+    $search = $this->search([], [], $parameters);
     if ($search == FALSE) {
-      return array();
+      return [];
     }
 
     // Get the agents from the facet list.
@@ -395,33 +349,6 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     }
 
     return $agents;
-  }
-
-  /**
-   * Get one agent with his configuration.
-   *
-   * @param int $agent_id
-   *   The ID of the agent
-   *
-   * @return array
-   *   The configuration of a given agent or FALSE in case of an error
-   */
-  public function getAgent($agent_id) {
-    $resource_path = '/sonr-backend/api/agents/%id';
-
-    $result = $this->connection->get($resource_path, array(
-      'parameters' => array('%id' => $agent_id),
-    ));
-
-    $agent = Json::decode($result);
-
-    if (!is_array($agent)) {
-      return FALSE;
-    }
-
-    $agent['id'] = $agent_id;
-
-    return $agent;
   }
 
   /**
@@ -440,9 +367,9 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    */
   public function addAgent($config) {
     $config['privateContent'] = FALSE;
-    $config['spaceKey'] = '';
+    $config['context'] = '';
 
-    $resource_path = '/sonr-backend/api/agents';
+    $resource_path = '/' . $this->graphSearchPath . '/api/agents';
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode($config),
@@ -469,55 +396,16 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    */
   public function updateAgent($agent_id, $config) {
     $config['privateContent'] = FALSE;
-    $config['spaceKey'] = '';
+    $config['context'] = '';
 
-    $resource_path = '/sonr-backend/api/agents/%id';
+    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
 
-    $result = $this->connection->put($resource_path, array(
+    $result = $this->connection->post($resource_path, array(
       'parameters' => array('%id' => $agent_id),
       'data' => Json::encode($config),
     ));
 
     return $result === FALSE ? FALSE : TRUE;
-  }
-
-  /**
-   * Delete an agent.
-   *
-   * @param int $agent_id
-   *   The ID of the agent.
-   *
-   * @return bool
-   *   TRUE on success, FALSE on error.
-   */
-  public function deleteAgent($agent_id) {
-    $resource_path = '/sonr-backend/api/agents/%id';
-
-    $result = $this->connection->delete($resource_path, array(
-      'parameters' => array('%id' => $agent_id),
-    ));
-
-    return $result === FALSE ? FALSE : TRUE;
-  }
-
-  /**
-   * Run an agent.
-   *
-   * @param int $agent_id
-   *   The ID of the agent.
-   *
-   * @return bool
-   *   TRUE on success, FALSE on error.
-   */
-  public function runAgent($agent_id) {
-    $resource_path = '/sonr-backend/api/agents/runAgent';
-
-    $result = $this->connection->get($resource_path, array(
-      'query' => array('id' => $agent_id),
-      'timeout' => 120,
-    ));
-
-    return $result  === FALSE ? FALSE : TRUE;
   }
 
   /**
@@ -544,14 +432,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function createPing(array $ping) {
-    $resource_path = '/sonr-backend/api/pings/create';
-    $ping['text'] = substr($ping['text'], 0, 12000);
-
-    $result = $this->connection->post($resource_path, array(
-      'data' => Json::encode($ping),
-    ));
-
-    return $result === FALSE ? FALSE : TRUE;
+    return $this->updatePing($ping);
   }
 
   /**
@@ -578,8 +459,21 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function updatePing(array $ping) {
-    $resource_path = '/sonr-backend/api/pings/update';
+    $resource_path = '/' . $this->graphSearchPath . '/api/content/update';
+    $ping['identifier'] = $ping['pageUrl'];
     $ping['text'] = substr($ping['text'], 0, 12000);
+    $ping['author'] = $ping['username'];
+    $ping['date'] = $ping['creationDate'];
+    $ping['facets'] = array_merge($ping['customAttributes'], $ping['dynUris']);
+    $ping['useExtraction'] = empty($ping['dynUris']);
+    $ping['context'] = $ping['spaceKey'];
+
+    unset($ping['pageUrl']);
+    unset($ping['username']);
+    unset($ping['creationDate']);
+    unset($ping['customAttributes']);
+    unset($ping['dynUris']);
+    unset($ping['spaceKey']);
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode($ping),
@@ -598,117 +492,118 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function deletePing($page) {
-    $resource_path = '/sonr-backend/api/pings/delete';
+    $resource_path = '/' . $this->graphSearchPath . '/api/content/delete/id';
 
     $result = $this->connection->post($resource_path, array(
-      'data' => Json::encode(array('pageUrl' => $page)),
+      'data' => Json::encode(array('identifier' => $page)),
     ));
 
     return $result === FALSE ? FALSE : TRUE;
   }
 
   /**
-   * Delete all indexed documents from an agent.
+   * Adds a new custom search field for the suggestion call.
    *
-   * @param string $source
-   *   The name of the source.
+   * @param string $label
+   *   The label of the custom search field.
+   * @param string $field
+   *   The name of the custom search field, e.g. 'content_type'.
    *
-   * @return bool
-   *   TRUE on success, FALSE on error.
+   * @return boolean
+   *   TRUE if field is added, FALSE instead.
    */
-  public function deleteIndex($source) {
-    $resource_path = '/sonr-backend/api/pings/deleteAll';
+  public function addCustomSearchField($label, $field) {
+    $resource_path = '/' . $this->graphSearchPath . '/admin/suggest/add';
+    $field = 'dyn_lit_' . str_replace('-', '_', $field);
+    $post_parameters = array(
+      'field' => $field,
+      'label' => $label,
+    );
 
-    $result = $this->connection->get($resource_path, array(
-      'query' => array('source' => $source),
+    $result = $this->connection->post($resource_path, array(
+      'data' => $post_parameters,
     ));
 
-    return $result === FALSE ? FALSE : TRUE;
+    if ($result !== FALSE) {
+      return TRUE;
+    }
+
+    return FALSE;
   }
 
   /**
-   * Get trends from a list of concepts.
+   * Deletes a custom search field for the suggestion call.
    *
-   * @param array $uris
-   *   A list of uris of concepts.
+   * @param string $field
+   *   The name of the custom search field, e.g. 'content_type'.
    *
-   * @return array
-   *   List of trends.
+   * @return boolean
+   *   TRUE if field is added, FALSE instead.
    */
-  public function getTrends($uris) {
-    $resource_path = '/sonr-backend/api/trend/histories';
+  public function deleteCustomSearchField($field) {
+    $resource_path = '/' . $this->graphSearchPath . '/admin/suggest/delete';
+    $field = 'dyn_lit_' . str_replace('-', '_', $field);
+    $post_parameters = array(
+      'field' => $field,
+    );
 
-    if (is_string($uris)) {
-      $uris = array($uris);
-    }
-
-    $result = $this->connection->get($resource_path, array(
-      'query' => array('concepts' => implode(',', $uris)),
+    $result = $this->connection->post($resource_path, array(
+      'data' => $post_parameters,
     ));
 
-    $trends = Json::decode($result);
-
-    if (!is_array($trends)) {
-      return FALSE;
+    if ($result !== FALSE) {
+      return TRUE;
     }
 
-    return $trends;
+    return FALSE;
   }
 
   /**
-   * Converts facet list into a list of object parameters for the sOnr.
+   * Changes the result array so that it is compatible with older version.
    *
-   * @param array $facets
-   *   The list of facet objects.
-   *
-   * @return array
-   *   Array of facet objects.
-   */
-  protected function prepareFacets($facets) {
-    $facet_parameters = array();
-    foreach ($facets as $facet) {
-      $facet_parameters[] = array(
-        'field' => $facet['facet_id'],
-        'facetMode' => $facet['facet_mode'],
-      );
-    }
-
-    return $facet_parameters;
-  }
-
-  /**
-   * Maps filters into the defined filters or the sOnr.
-   *
-   * @param array $filters
-   *   The list of filters.
+   * @param array $result
+   *   The result of the search API call.
    *
    * @return array
-   *   Array of filter object parameters.
+   *   The compatible result for older version.
    */
-  protected function prepareFilters($filters) {
-    $dates = array();
-    foreach ($filters as $key => $filter) {
-      if ($filter->field == 'date-from') {
-        $dates['from'] = $filter->value . 'T00:00:00Z';
-        unset($filters[$key]);
-      }
-      if ($filter->field == 'date-to') {
-        $dates['to'] = $filter->value . 'T23:59:59Z';
-        unset($filters[$key]);
-      }
+  protected function makeSearchCompatible($result) {
+    if (empty($result['results'])) {
+      return $result;
     }
-    $value = '';
-    $value .= isset($dates['from']) ? $dates['from'] : '*';
-    $value .= ' TO ';
-    $value .= isset($dates['to']) ? $dates['to'] : '*';
 
-    $item = new \stdClass();
-    $item->field = 'date';
-    $item->value = '[' . $value . ']';
+    foreach ($result['results'] as &$item) {
+      $item['customAttributes'] = [];
+      if (empty($item['facetList'])) {
+        unset($item['facetList']);
+        continue;
+      }
 
-    $filters[] = $item;
-    $filters = array_values($filters);
+      foreach ($item['facetList'] as $facet) {
+        switch ($facet['field']) {
+          case self::ATTR_ALL_CONCEPTS:
+            foreach ($facet['facets'] as $concept) {
+              $item['customAttributes'][$facet['field']][] = [
+                'prefLabel' => $concept['value'],
+                'uri' => $concept['label'],
+              ];
+            }
+            break;
 
-    return $filters;
+          case self::ATTR_CONTENT_TYPE:
+            $item['customAttributes'][$facet['field']][0] = $facet['facets'][0]['label'];
+            break;
+
+          case self::ATTR_AUTHOR:
+          case self::ATTR_SENTIMENT:
+          case self::ATTR_SOURCE:
+            $item['customAttributes'][$facet['field']] = $facet['facets'][0]['label'];
+            break;
+        }
+      }
+      unset($item['facetList']);
+    }
+
+    return $result;
   }
 }

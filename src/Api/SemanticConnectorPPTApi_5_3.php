@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\semantic_connector\Api;
+use Drupal\Component\Serialization\Json;
 
 /**
  * Class SemanticConnectorPPTApi_5_3
@@ -36,8 +37,22 @@ class SemanticConnectorPPTApi_5_3 extends SemanticConnectorPPTApi_4_6 {
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
     ));
-    $history_items = json_decode($result);
+    $history_items = Json::decode($result);
 
     return $history_items;
+  }
+
+  /**
+   * Returns a list of PoolParty user group names
+   *
+   * @return string[]
+   *   Array of PoolParty user groups.
+   */
+  public function getUserGroups() {
+    $resource_path = '/PoolParty/api/user/groups';
+    $result = $this->connection->get($resource_path);
+    $groups = Json::decode($result);
+
+    return $groups;
   }
 }

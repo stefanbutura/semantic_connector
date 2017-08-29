@@ -69,6 +69,43 @@ abstract class SemanticConnectorPPTApi {
   }
 
   /**
+   * Create a new project on a PoolParty server.
+   *
+   * @param string $title
+   *   The title of the project.
+   * @param string $language_default
+   *   The default language of the project.
+   * @param array $user_groups
+   *   An arary of PoolParty user groups to make this project available for.
+   * @param array $settings
+   *   An associative array of optional settings. Possible values are:
+   *   - author: (string) Project author
+   *   - availableLanguages: (string[]) Additional languages
+   *   - baseURL: (string) Base URL of the project
+   *   - contributor: (string) Project contributor
+   *   - description: (string) Project description
+   *   - enableSkosXl: (bool) Enable SKOS-XL
+   *   - enableWorkflow: (bool) Enable Workflow
+   *   - idGeneration: (string) ID-Generation Method. Possible Values: increment, prefLabel, uuid, manual
+   *   - incrementStart: (int) Increment start only needed when ID-Generation is 'increment'
+   *   - license: (string) Project licensce. Must be a valid URI
+   *   - projectIdentifier: (string) Project Identifier
+   *   - publisher: (string) Project publisher
+   *   - qualitySetting: (string) Quality Setting. Possible Values:default, autoIndexing, classification, documentsuggestion, restricted, disabled
+   *   - repositoryType: (string) Repository Type. Possible Values: memory, native
+   *   - snapshotInterval: (int) SnapshotInterval. Possible Values:5,10,15,30,-1:disabled
+   *   - subject: (string) Primary subject of the project
+   *   - workflowAssignee: (string) URI of the user that will get assigned to the workflow. Only used when workflow enabled
+   *   - workflowState: (string) State of the workflow. Possible values: DRAFT, APPROVED
+   *
+   * @return string|bool
+   *   A list of projects.
+   */
+  public function createProject($title, $language_default = 'en', $user_groups = array('Public'), $settings = array()) {
+    return FALSE;
+  }
+
+  /**
    * Export data of a project as a file and store it on the server.
    *
    * @param string $project_id
@@ -350,6 +387,26 @@ abstract class SemanticConnectorPPTApi {
    *   A list of concept objects in a tree format.
    */
   public function getSubTree($project_id, $uri, array $properties = array(), $language = '') {
+    return array();
+  }
+
+  /**
+   * Returns a list of PoolParty user group names
+   *
+   * @return string[]
+   *   Array of PoolParty user groups.
+   */
+  public function getUserGroups() {
+    return array();
+  }
+
+  /**
+   * Get the languages available in the PoolParty.
+   *
+   * @return array
+   *   An associative array of available languages (iso-code --> label).
+   */
+  public function getLanguages() {
     return array();
   }
 }

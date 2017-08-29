@@ -11,7 +11,7 @@ use Drupal\Component\Serialization\Json;
 class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
 
   /**
-   * This method checks if the sOnr service exists and is running.
+   * This method checks if the GraphSearch service exists and is running.
    *
    * @return bool
    *   TRUE if the service is available, FALSE if not
@@ -24,9 +24,9 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   }
 
   /**
-   * This method gets the configuration of the sOnr webMining server.
+   * This method gets the configuration of the PoolParty GraphSearch server.
    *
-   * @return array
+   * @return boolean|array
    *   project => The PoolParty project used for the extraction
    *   language => The configured language of the content.
    */
@@ -47,9 +47,9 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   }
 
   /**
-   * This method gets the field configuration of the sOnr webMining server.
+   * This method gets the field configuration of the PoolParty GraphSearch server.
    *
-   * @return array
+   * @return boolean|array
    *   searchFields -> Search field setup
    *   fieldNameMap -> Search field map
    *   fieldTypeMap -> Search field type map
@@ -68,7 +68,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   }
 
   /**
-   * This method searches in the sOnr index.
+   * This method searches in the GraphSearch index.
    *
    * @param array $facets
    *   A list of facet objects that should be used for faceting the
@@ -98,7 +98,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *      ),   (default: object('field' => 'date', 'direction' => 'DESC')
    *    )
    *
-   * @return array
+   * @return boolean|array
    *   List of items or FALSE in case of an error
    */
   public function search($facets = array(), $filters = array(), $parameters = array()) {
@@ -138,8 +138,8 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   /**
    * Get all project dependent facets.
    *
-   * @return array
-   *   A key value pair list of facets
+   * @return boolean|array
+   *   A key value pair list of facets or FALSE in case of an error.
    */
   public function getFacets() {
     // Get the fields for the facets.
@@ -204,7 +204,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    * @param array $parameters
    *   Array of the parameters
    *
-   * @return array
+   * @return boolean|array
    *   A key value pair list of facets or FALSE in case of an error
    */
   public function getSimilar($item_id, $parameters = array()) {
@@ -241,7 +241,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *     'language' => (string) 'en', (default: 'en')
    *   )
    *
-   * @return array
+   * @return boolean|array
    *   List of concepts, free terms and recommended content or FALSE in case of
    *   an error
    */
@@ -263,7 +263,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
       'data' => Json::encode($post_parameters),
     ));
 
-    $recommendations = json_decode($result);
+    $recommendations = Json::decode($result);
 
     if (!is_object($recommendations)) {
       return FALSE;
@@ -273,7 +273,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   }
 
   /**
-   * Returns the link to a file collected from sOnr.
+   * Returns the link to a file collected from PoolParty GraphSearch.
    *
    * @param string $file_path
    *   Relative path to a file in the collection
@@ -289,7 +289,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
   /**
    * Get all agents with their configuration and status.
    *
-   * @return array
+   * @return boolean|array
    *   A list of agents with their configuration and status
    */
   public function getAgents() {
@@ -322,7 +322,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    * @param int $agent_id
    *   The ID of the agent
    *
-   * @return array
+   * @return boolean|array
    *   The configuration of a given agent or FALSE in case of an error
    */
   public function getAgent($agent_id) {
@@ -351,15 +351,16 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *    'source'          => (string) 'EIP Water',
    *    'url'             => (string) 'http://eip-water.eu/rss.xml'
    *    'username'        => (string) 'admin',
-   *    'privateContent'  => (boolean) FALSE,
    *    'periodMillis'    => (int) 3600000,
-   *    'spaceKey'        => (string) 'extern',
    *  )
    *
    * @return bool
    *   TRUE on success, FALSE on error
    */
   public function addAgent($config) {
+    $config['privateContent'] = FALSE;
+    $config['spaceKey'] = '';
+
     $resource_path = '/' . $this->graphSearchPath . '/api/agents';
 
     $result = $this->connection->post($resource_path, array(
@@ -379,15 +380,16 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *    'source'          => (string) 'EIP Water',
    *    'url'             => (string) 'http://eip-water.eu/rss.xml'
    *    'username'        => (string) 'admin',
-   *    'privateContent'  => (boolean) FALSE,
    *    'periodMillis'    => (int) 3600000,
-   *    'spaceKey'        => (string) 'extern',
    *  )
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
   public function updateAgent($agent_id, $config) {
+    $config['privateContent'] = FALSE;
+    $config['spaceKey'] = '';
+
     $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
 
     $result = $this->connection->put($resource_path, array(
@@ -549,8 +551,8 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    * @param array $uris
    *   A list of uris of concepts.
    *
-   * @return array
-   *   List of trends.
+   * @return boolean|array
+   *   List of trends or FALSE in case of an error.
    */
   public function getTrends($uris) {
     $resource_path = '/' . $this->graphSearchPath . '/api/trend/histories';
@@ -641,7 +643,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *    'count'  => (int)    10,    (default:   10)
    *  )
    *
-   * @return array
+   * @return boolean|array
    *   Array of concepts
    *   array(
    *    'id'      => (string) URI of concept
@@ -656,7 +658,6 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
       'searchString' => $search_string,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
       'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'format' => 'json',
     );
 
     $result = $this->connection->get($resource_path, array(
