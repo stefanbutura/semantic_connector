@@ -139,8 +139,9 @@ abstract class SemanticConnectorPPTApi {
    *   Only concepts with labels in this language will be displayed. If no
    *   language is given, the default language of the project will be used.
    *
-   * @return stdClass
-   *   A concept scheme object within the respective PoolParty project.
+   * @return \stdClass[]
+   *   An array of concept scheme objects within the respective PoolParty
+   *   project.
    */
   public function getConceptSchemes($project_id, $language = '') {
     return array();
@@ -307,11 +308,11 @@ abstract class SemanticConnectorPPTApi {
   /**
    * Adds a literal to an existing concept
    *
-   * @param $project_id
+   * @param string $project_id
    *  The ID of the PoolParty project.
-   * @param $concept_uri
+   * @param string $concept_uri
    *  The URI of the Concept.
-   * @param $property
+   * @param string $property
    *  The SKOS property. Possible values are:
    *  - preferredLabel
    *  - alternativeLabel
@@ -320,9 +321,9 @@ abstract class SemanticConnectorPPTApi {
    *  - scopeNote
    *  - example
    *  - notation
-   * @param $label
+   * @param string $label
    *  The RDF literal to add.
-   * @param null $language
+   * @param string $language
    *  The attribute language.
    *
    * @return mixed
@@ -335,15 +336,15 @@ abstract class SemanticConnectorPPTApi {
   /**
    * Adds a literal to an existing concept
    *
-   * @param $project_id
+   * @param string $project_id
    *  The ID of the PoolParty project.
-   * @param $concept_uri
+   * @param string $concept_uri
    *  The URI of the Concept to add the property to.
-   * @param $attribute_uri
+   * @param string $attribute_uri
    *  The URI of the custom attribute property.
-   * @param $value
+   * @param string $value
    *  The attribute value that should be added
-   * @param null $language
+   * @param string $language
    *  The attribute language.
    *
    * @return mixed
@@ -356,17 +357,27 @@ abstract class SemanticConnectorPPTApi {
   /**
    * Get all history items of a PoolParty project.
    *
-   * @param $project_id
+   * @param string $project_id
    *   The ID of the project to get history items for.
    * @param int $from_time
    *   Optional; Only history items after this time will be included.
    * @param int $to_time
    *   Optional; Only history items before this time will be included.
+   * @param string[] $events
+   *   Optional; Filter by event type.
+   *   Possible values: resourceChangeAddition, resourceChangeRemoval,
+   *     resourceChangeUpdate, addRelation, removeRelation, addLiteral,
+   *     removeLiteral, updateLiteral, addCollectionMember,
+   *     removeCollectionMember, createCollection, deleteCollection,
+   *     importConcept, resourceChangeAddition, addCustomAttributeLiteral,
+   *     removeCustomAttributeLiteral ,updateCustomAttributeLiteral,
+   *     addCustomRelation, removeCustomRelation, addCustomClass,
+   *     removeCustomClass
    *
    * @return array
    *   An array of history items.
    */
-  public function getHistory($project_id, $from_time = NULL, $to_time = NULL) {
+  public function getHistory($project_id, $from_time = NULL, $to_time = NULL, $events = array()) {
     return array();
   }
 
@@ -408,5 +419,164 @@ abstract class SemanticConnectorPPTApi {
    */
   public function getLanguages() {
     return array();
+  }
+
+  /**
+   * Get information about the extraction model for a PP project.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to get the extraction model info for.
+   *
+   * @return array|bool
+   *   Associative array of extraction model info or FALSE in case of an error.
+   *   Following keys are included:
+   *   - lastBuildTime (string) --> Last extraction model build time
+   *   - lastChangeTime (string) --> Last thesaurus change
+   *   - upToDate (bool) --> Whether the extraction model is up-to-date or not
+   */
+  public function getExtractionModelInfo($project_id) {
+    return FALSE;
+  }
+
+  /**
+   * Refresh the extraction model for a PP project
+   *
+   * @param string $project_id
+   *   The ID of the PP project to refresh the extraction model for.
+   *
+   * @return array
+   *   An associative array informing about the success of the refreshing
+   *   containing following keys:
+   *   - success (bool) --> TRUE if the refreshing worked, FALSE if not
+   *   - message (string) --> This property is optional, but if it exists it
+   *       includes more details about why the connection could not be
+   *       established.
+   *   - since PP 6.0 also "plainMessage" and "reportable"
+   */
+  public function refreshExtractionModel($project_id) {
+    return array('success' => FALSE);
+  }
+
+  /**
+   * Get the corpora available for a PoolParty project.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to refresh the extraction model for.
+   *
+   * @return array
+   *   An array of associative corpus arrays containing following properties:
+   *   - corpusId (string) --> Corpus id
+   *   - corpusName (string) --> Corpus name
+   *   - language (string) --> Language of corpus (en|de|es|fr|...)
+   *   - upToDate (boolean) --> Up to date flag
+   */
+  public function getCorpora($project_id) {
+    return array();
+  }
+
+  /**
+   * Push text into a PoolParty corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to use.
+   * @param string $corpus_id
+   *   The ID of the corpus to add the text to.
+   * @param string $title
+   *   The title of the document to push into the corpus.
+   * @param mixed $data
+   *   The text to push into the corpus.
+   * @param string $data_type
+   *   The type of the data. Can be one of the following values:
+   *   - "text" for a text
+   *   - "file" for a file object with a file ID
+   *   - "file direct" for all other files without an ID
+   * @param boolean $check_language
+   *   Checks if the language of the uploaded file and the language of the
+   *   corpus are the same.
+   *
+   * @return mixed
+   *  Status: 200 - OK
+   */
+  public function addDataToCorpus($project_id, $corpus_id, $title, $data, $data_type, $check_language = TRUE) {
+    return '';
+  }
+
+  /**
+   * Get the metadata (additional information) of a corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to get the corpus metadata for.
+   * @param string $corpus_id
+   *   The ID of the corpus to get the metadata for.
+   *
+   * @return array
+   *   An array of associative corpus arrays containing following properties:
+   *   - corpusName (string) --> Corpus name
+   *   - corpusId (string) --> Corpus id
+   *   - language (string) --> Language of corpus (en|de|es|fr|...)
+   *   - createdBy (string) --> Corpus created by user
+   *   - created (string) --> Time of creation of the corpus
+   *   - extractedTerms (int) --> Number of unique free terms
+   *   - concepts (int) --> Number of unique concepts
+   *   - suggestedTermOccurrences (int) --> Number of free terms
+   *   - conceptOccurrences (int) --> Number of concepts
+   *   - quality (string) --> Quality of the corpus
+   *     Possible values are "good", "moderate" and "poor"
+   *   - overallFileSize (string) --> Overall file size of documents in the corpus
+   *   - lastModified (string) --> Last modification date of the corpus
+   *   - storedDocuments (int) --> Number of stored documents in the corpus
+   */
+  public function getCorpusMetadata($project_id, $corpus_id) {
+    return NULL;
+  }
+
+  /**
+   * Check if a corpus is up to date (or has to by analysed in case it is not).
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus to check.
+   * @param string $corpus_id
+   *   The ID of the corpus to check.
+   *
+   * @return boolean
+   *   TRUE if the corpus is up to date, FALSE if not
+   */
+  public function isCorpusUpToDate($project_id, $corpus_id) {
+    return FALSE;
+  }
+
+  /**
+   * Start the analysis of a corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus.
+   * @param string $corpus_id
+   *   The ID of the corpus to start the analysis for.
+   *
+   * @return array
+   *   An associative array informing about the success of the analysis
+   *   containing following keys:
+   *   - success (bool) --> TRUE if the analysis worked, FALSE if not
+   *   - message (string) --> This property is optional, but if it exists it
+   *       includes more details about why the connection could not be
+   *       established.
+   *   - since PP 6.0 also "plainMessage" and "reportable"
+   */
+  public function analyzeCorpus($project_id, $corpus_id) {
+    return array('success' => FALSE);
+  }
+
+  /**
+   * Check if a corpus analysis is running for a project (only one analysis can
+   * run per project at a time).
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus to check.
+   *
+   * @return boolean
+   *   TRUE if a corpus is running for that project, FALSE if not
+   */
+  public function isCorpusAnalysisRunning($project_id) {
+    return FALSE;
   }
 }

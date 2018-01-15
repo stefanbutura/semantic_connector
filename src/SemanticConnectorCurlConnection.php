@@ -84,6 +84,12 @@ class SemanticConnectorCurlConnection {
    *   Returns an object containing the response data, FALSE otherwise.
    */
   public function get($resource_path, array $variables = array()) {
+    if (isset($variables['query'])) {
+      if (!isset($variables['headers']['Content-Type'])) {
+        $variables['headers']['Content-Type'] = 'application/json;charset=UTF-8';
+      }
+    }
+
     return $this->call($resource_path, $variables, 'GET');
   }
 
@@ -205,7 +211,6 @@ class SemanticConnectorCurlConnection {
     switch ($method) {
       case 'GET':
         curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json;charset=UTF-8'));
         break;
 
       case 'POST':
@@ -273,7 +278,7 @@ class SemanticConnectorCurlConnection {
 
     // Set timeout.
     if (!(isset($variables['timeout']) && is_numeric($variables['timeout']) && intval($variables['timeout']) >= 0)) {
-      $variables['timeout'] = 30;
+      $variables['timeout'] = 5;
     }
     curl_setopt($ch, CURLOPT_TIMEOUT, $variables['timeout']);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

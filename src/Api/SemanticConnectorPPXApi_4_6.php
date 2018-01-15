@@ -89,7 +89,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
   /**
    * Extract concepts from given data.
    *
-   * @param object|string $data
+   * @param mixed $data
    *   Can be either a string for normal text-extraction of a file-object for
    *   text extraction of the file content.
    * @param string $language
@@ -102,11 +102,13 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
    *   - "url" for a valid URL
    *   - "file" for a file object with a file ID
    *   - "file direct" for all other files without an ID
+   * @param boolean $categorize
+   *   TRUE if categories should also be returned, FALSE if not.
    *
-   * @return object
-   *   Object of concepts.
+   * @return array
+   *   Array of concepts.
    */
-  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '') {
+  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '', $categorize = FALSE) {
     // Offer the possibility to support a different value for this function.
     $concepts = NULL;
 
@@ -115,6 +117,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
       'language' => $language,
       'parameters' => $parameters,
       'data type' => $data_type,
+      'categorize' => $categorize,
     );
     \Drupal::moduleHandler()->alter('semantic_connector_ppx_extractConcepts', $this, $concepts, $input);
 
@@ -123,6 +126,12 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
       $resource_path = '/extractor/api/extract';
       if (empty($data_type)) {
         $data_type = $this->getTypeOfData($data);
+      }
+
+      // Add categorization if required.
+      if ($categorize) {
+        $parameters['categorize'] = TRUE;
+        $parameters['disambiguate'] = TRUE;
       }
 
       switch ($data_type) {
@@ -189,11 +198,11 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
     }
 
     // Files have additional information we don't need --> remove it.
-    if (is_object($concepts) && property_exists($concepts, 'document')) {
-      $concepts = $concepts->document;
+    if (is_array($concepts) && isset($concepts['document'])) {
+      $concepts = $concepts['document'];
     }
-    if (is_object($concepts) && property_exists($concepts, 'text')) {
-      $concepts = $concepts->text;
+    if (is_array($concepts) && isset($concepts['text'])) {
+      $concepts = $concepts['text'];
     }
 
     return $concepts;
@@ -242,8 +251,8 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
       $suggestion = Json::decode($result);
     }
 
-    if (is_object($suggestion) && property_exists($suggestion, 'suggestedConcepts') && is_array($suggestion->suggestedConcepts)) {
-      return $suggestion->suggestedConcepts;
+    if (is_array($suggestion) && isset($suggestion['suggestedConcepts']) && is_array($suggestion['suggestedConcepts'])) {
+      return $suggestion['suggestedConcepts'];
     }
 
     return array();

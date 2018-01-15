@@ -18,6 +18,7 @@ use Drupal\semantic_connector\Entity\SemanticConnectorConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorPPServerConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorSparqlEndpointConnection;
 use Drupal\smart_glossary\Entity\SmartGlossaryConfig;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
 /**
@@ -181,7 +182,7 @@ class SemanticConnector {
         $connection->setCredentials($credentials);
         $has_changed = TRUE;
       }
-      if (!empty($config)) {
+      if (!empty($config) && $connection->getConfig() != $config) {
         $connection->setConfig(array_merge($connection->getConfig(), $config));
         $has_changed = TRUE;
       }
@@ -301,7 +302,7 @@ class SemanticConnector {
               $connections_used[$connection_id][$module_key][] = array(
                 'id' => $config->id(),
                 'title' => $config->getTitle(),
-                'project_id' => $config->getProjectId(),
+                'project_id' => $config->getSearchSpaceId(),
               );
             }
             break;
@@ -398,10 +399,11 @@ class SemanticConnector {
         $query->fields('u', array('field_uri_uri', 'entity_id'));
         $uri_tid_mapping = $query->execute()->fetchAllKeyed();
       }
+      $pp_server_connection = SemanticConnector::getConnection('pp_server', $connection_id);
 
       $smart_glossary_destinations = array();
       if (isset($destinations['smart_glossary_detail_page']) && $destinations['smart_glossary_detail_page']['use'] && !in_array('smart_glossary_detail_page', $ignore_destinations)) {
-        $pp_server_connection = SemanticConnector::getConnection('pp_server', $connection_id);
+
         $server_config = $pp_server_connection->getConfig();
         if (isset($server_config['projects']) && !empty($server_config['projects'])) {
           foreach ($server_config['projects'] as $project) {
@@ -438,22 +440,33 @@ class SemanticConnector {
 
       $pp_graphsearch_destinations = array();
       if (isset($destinations['pp_graphsearch']) && $destinations['pp_graphsearch']['use'] && !in_array('pp_graphsearch', $ignore_destinations)) {
-        // Get all block paths of sOnr webmining blocks, which use the given
-        // connection ID and project ID.
-        $pp_graphsearch_configs = \Drupal::entityTypeManager()
-          ->getStorage('pp_graphsearch')
-          ->loadByProperties(array('connection_id' => $connection_id, 'project_id' => $project_id));
 
-        if (!empty($pp_graphsearch_configs)) {
-          /** @var PPGraphSearchConfig $pp_graphsearch_config */
-          foreach ($pp_graphsearch_configs as $pp_graphsearch_config) {
-            $advanced_settings = $pp_graphsearch_config->getConfig();
-            if (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations']) {
-              // Use the first concrete path of the block.
-              $pp_graphsearch = new PPGraphSearch($pp_graphsearch_config);
-              $pp_graphsearch_block_path = $pp_graphsearch->getBlockPath();
-              if (!empty($pp_graphsearch_block_path)) {
-                $pp_graphsearch_destinations[($pp_graphsearch_block_path == '<front>' ? '' : $pp_graphsearch_block_path)] = $pp_graphsearch_config->getTitle();
+        $connection_config = $pp_server_connection->getConfig();
+        if (isset($connection_config["graphsearch_configuration"]) && !empty($connection_config["graphsearch_configuration"])) {
+          if (isset($connection_config["graphsearch_configuration"]['projects'][$project_id])) {
+            $search_space_ids = array_keys($connection_config["graphsearch_configuration"]['projects'][$project_id]['search_spaces']);
+
+            // Get all block paths of sOnr webmining blocks, which use the given
+            // connection ID and project ID.
+            $pp_graphsearch_configs = \Drupal::entityTypeManager()
+              ->getStorage('pp_graphsearch')
+              ->loadByProperties(array(
+                'connection_id' => $connection_id,
+                'search_space_id' => $search_space_ids
+              ));
+
+            if (!empty($pp_graphsearch_configs)) {
+              /** @var PPGraphSearchConfig $pp_graphsearch_config */
+              foreach ($pp_graphsearch_configs as $pp_graphsearch_config) {
+                $advanced_settings = $pp_graphsearch_config->getConfig();
+                if (!isset($advanced_settings['semantic_connection']['show_in_destinations']) || $advanced_settings['semantic_connection']['show_in_destinations']) {
+                  // Use the first concrete path of the block.
+                  $pp_graphsearch = new PPGraphSearch($pp_graphsearch_config);
+                  $pp_graphsearch_block_path = $pp_graphsearch->getBlockPath();
+                  if (!empty($pp_graphsearch_block_path)) {
+                    $pp_graphsearch_destinations[($pp_graphsearch_block_path == '<front>' ? '' : $pp_graphsearch_block_path)] = $pp_graphsearch_config->getTitle();
+                  }
+                }
               }
             }
           }
@@ -658,5 +671,153 @@ class SemanticConnector {
     }
 
     return $machine_name;
+  }
+
+  /**
+   * Get the configuration for the global notifications.
+   *
+   * @return array
+   *   An associative array of notification settings.
+   */
+  public static function getGlobalNotificationConfig() {
+    return \Drupal::config('semantic_connector.settings')->get('notifications');
+  }
+
+  /**
+   * Get the configuration for the global notifications.
+   *
+   * @return array
+   *   An array of associative action arrays.
+   *   Every action has following properties:
+   *   - id: string that gets used as the key of the action
+   *   - title
+   *   - description
+   *   - default_value: boolean default value
+   *   - callback: the function to call to check for the notification
+   */
+  public static function getGlobalNotificationActions() {
+    $actions = array();
+
+    $default_action = array(
+      'id' => '',
+      'title' => '',
+      'description' => '',
+      'default_value' => TRUE,
+      'callback' => '',
+    );
+
+    foreach (\Drupal::moduleHandler()->getImplementations('semantic_connector_global_notification_actions') as $module) {
+      $module_actions = \Drupal::moduleHandler()->invoke($module, 'semantic_connector_global_notification_actions');
+      foreach ($module_actions as $module_action) {
+        $module_action = $module_action + $default_action;
+        // At least ID, title and callback have to be given.
+        if (!empty($module_action['id']) && !empty($module_action['title']) && !empty($module_action['callback'])) {
+          $actions[] = $module_action;
+        }
+      }
+    }
+    return $actions;
+  }
+
+  /**
+   * Check all global notifications.
+   *
+   * @param bool $force_check
+   *   Check for notifications, even if interval is not yet over.
+   *
+   * @return string[]
+   *   Array of notification strings.
+   */
+  public static function checkGlobalNotifications($force_check = FALSE) {
+    $notifications = array();
+    $notification_config = self::getGlobalNotificationConfig();
+    $notification_config_update_required = FALSE;
+
+    if ($notification_config['enabled']) {
+      $settings = \Drupal::config('semantic_connector.settings');
+      $last_notification_check = $settings->get('global_notification_last_check');
+      // Find out if a check is already required.
+      if ((time() - $last_notification_check) >= $notification_config['interval'] || $force_check) {
+        $actions = self::getGlobalNotificationActions();
+        foreach ($actions as $action) {
+          // Use the default value in case there is no value yet.
+          if (!isset($notification_config['actions'][$action['id']])) {
+            $notification_config['actions'][$action['id']] = $action['default_value'];
+            $notification_config_update_required = TRUE;
+          }
+
+          // Find out if this specfic check has to be done.
+          if ($notification_config['actions'][$action['id']]) {
+            $action_notifications = call_user_func($action['callback']);
+            $notifications = array_merge($notifications, $action_notifications);
+          }
+        }
+
+        // Update the notifications and update the notificiation config if required.
+        $settings->set('global_notifications', $notifications);
+        if ($notification_config_update_required) {
+          $settings->set('notifications', $notification_config);
+        }
+
+        // Set the current timestamp as last check and update the notifications.
+        $settings->set('global_notification_last_check', time());
+        $settings->save();
+      }
+      // If no check is required use the existing notifications.
+      else {
+        $notifications = \Drupal::config('semantic_connector.settings')->get('global_notifications');
+      }
+    }
+
+    return $notifications;
+  }
+
+  /**
+   * Get the search spaces of a GraphSearch config.
+   *
+   * @param array $graphsearch_config
+   *   The GraphSearch configuration including the search space data.
+   * @param string $search_space_id_filter
+   *   Optional; The ID of the search space.
+   * @param string $project_id_filter
+   *   Optional; The ID of the search PoolParty project used in the search space.
+   * @param string $language_filter
+   *   Optional; The language of the search space.
+   *
+   * @return array
+   *   An array of search spaces by their ID, each item contains following keys:
+   *   - "id": The ID of the search space
+   *   - "name": The name of the search space
+   *   - "language": The language used in the search space
+   *   - "project_ids": An array of project ID string the search space contains
+   */
+  public static function getGraphSearchSearchSpaces(array $graphsearch_config, $search_space_id_filter = '', $project_id_filter = '', $language_filter = '') {
+    $search_spaces = array();
+
+    if (isset($graphsearch_config['projects'])) {
+      // Create a list of all search spaces first.
+      foreach ($graphsearch_config['projects'] as $graphsearch_project) {
+        foreach ($graphsearch_project['search_spaces'] as $search_space) {
+          if (!isset($search_spaces[$search_space['id']])) {
+            $search_spaces[$search_space['id']] = $search_space;
+            $search_spaces[$search_space['id']]['project_ids'] = array();
+          }
+          $search_spaces[$search_space['id']]['project_ids'][] = $graphsearch_project['id'];
+        }
+      }
+
+      // Remove wrong search spaces then.
+      foreach ($search_spaces as $search_space_id => $search_space) {
+        if (
+          (!empty($search_space_id_filter) && $search_space_id_filter != $search_space_id)
+          || (!empty($project_id_filter) && !in_array($project_id_filter, $search_space['project_ids']))
+          || (!empty($language_filter) && $language_filter != $search_space['language'])
+        ) {
+          unset($search_spaces[$search_space_id]);
+        }
+      }
+    }
+
+    return $search_spaces;
   }
 }

@@ -109,3 +109,11 @@ entity.sparql_endpoint_connection.available:
     parameters:
       connection:
         type: entity:sparql_endpoint_connection
+
+semantic_connector.refresh_notifications:
+  path: '/semantic-connector/refresh-notifications'
+  defaults:
+    _controller: '\Drupal\semantic_connector\Controller\SemanticConnectorController::refreshNotifications'
+    _title: 'Refresh notifications'
+  requirements:
+    _permission: 'administer semantic connector'

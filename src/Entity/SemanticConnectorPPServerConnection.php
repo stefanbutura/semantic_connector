@@ -69,38 +69,27 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
 
     // Add the projects to the config before saving the PoolParty server.
     $projects = $ppt_api->getProjects();
-    $sparql_endpoints_to_remove = array();
-    $new_project_urls = array();
+
+    // Get the Sparql-Endpoints for each project.
+    $sparql_endpoints = array();
     foreach ($projects as $project) {
       if (isset($project['sparql_endpoint_url'])) {
-        $new_project_urls[] = $project['sparql_endpoint_url'];
+        $sparql_endpoints[] = $project['sparql_endpoint_url'];
       }
     }
 
+    // Get all not existing Sparql-Endpoints for removing.
+    $sparql_endpoints_to_remove = array();
     if (isset($this->config['projects'])) {
-
       foreach ($this->config['projects'] as $project) {
-        if (isset($project['sparql_endpoint_url']) && !in_array($project['sparql_endpoint_url'], $new_project_urls)) {
+        if (isset($project['sparql_endpoint_url']) && !in_array($project['sparql_endpoint_url'], $sparql_endpoints)) {
           $sparql_endpoints_to_remove[] = $project['sparql_endpoint_url'];
         }
       }
     }
+
+    // Add the projects to the configuration.
     $this->config['projects'] = $projects;
-
-    // Add a SPARQL-endpoint connection for every project.
-    foreach ($this->config['projects'] as $project) {
-      if (isset($project['sparql_endpoint_url'])) {
-        SemanticConnector::createConnection('sparql_endpoint', $project['sparql_endpoint_url'], $project['title'], $this->credentials, array());
-      }
-    }
-
-    // Remove SPARQL-endpoints, that do not exist anymore.
-    if (!empty($sparql_endpoints_to_remove)) {
-      $connections_query = \Drupal::entityQuery('sparql_endpoint');
-      $delete_connection_ids = $connections_query->condition('url', $sparql_endpoints_to_remove, 'IN')->execute();
-
-      SemanticConnector::deleteConnections('sparql_endpoint', $delete_connection_ids);
-    }
 
     // Update the PoolParty GraphSearch configuration.
     $sonr_config = array();
@@ -123,6 +112,45 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     $this->config['graphsearch_configuration'] = $sonr_config;
 
     parent::save();
+
+    // Add a SPARQL-endpoint connection for every project.
+    foreach ($this->config['projects'] as $project) {
+      if (isset($project['sparql_endpoint_url'])) {
+        SemanticConnector::createConnection('sparql_endpoint', $project['sparql_endpoint_url'], $project['title'], $this->credentials, array());
+      }
+    }
+
+    // Remove SPARQL-endpoints, that do not exist anymore.
+    if (!empty($sparql_endpoints_to_remove)) {
+      $connections_query = \Drupal::entityQuery('sparql_endpoint');
+      $delete_connection_ids = $connections_query->condition('url', $sparql_endpoints_to_remove, 'IN')->execute();
+
+      SemanticConnector::deleteConnections('sparql_endpoint', $delete_connection_ids);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function delete() {
+    // Delete the Sparql-Endpoint for each project.
+    if (isset($this->config['projects'])) {
+      $sparql_endpoints_to_remove = array();
+      foreach ($this->config['projects'] as $project) {
+        if (isset($project['sparql_endpoint_url'])) {
+          $sparql_endpoints_to_remove[] = $project['sparql_endpoint_url'];
+        }
+      }
+
+      if (!empty($sparql_endpoints_to_remove)) {
+        $connections_query = \Drupal::entityQuery('sparql_endpoint');
+        $delete_connection_ids = $connections_query->condition('url', $sparql_endpoints_to_remove, 'IN')->execute();
+
+        SemanticConnector::deleteConnections('sparql_endpoint', $delete_connection_ids);
+      }
+    }
+
+    parent::delete();
   }
 
   /**
@@ -187,7 +215,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     // important.
     $available_api_versions = array(
       'pp_server' => array('4.6', '5.3', '5.6', '6.0'),
-      'sonr' => array('4.6', '5.3', '5.6', '5.7', '6.0'),
+      'sonr' => array('4.6', '5.3', '5.6', '5.7', '6.0', '6.1'),
     );
 
     $version_infos = array(
@@ -199,12 +227,20 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     // PPX or PPT API.
     if ($api_type != 'sonr') {
       $api_versions = $available_api_versions['pp_server'];
+      $class_prefix = '\Drupal\semantic_connector\Api\SemanticConnector' . $api_type . 'Api_';
       usort($api_versions, 'version_compare');
       if (!isset($this->config['version']) || empty($this->config['version'])) {
         $this->config['version'] = $api_versions[0];
+        // Check with the lowest API version, which supports getVersion for all
+        // API versions.
+        $version_check_class_name = '\Drupal\semantic_connector\Api\SemanticConnectorPPTApi_' . str_replace('.', '_', $api_versions[0]);
+        $credentials = !empty($this->credentials['username']) ? $this->credentials['username'] . ':' . $this->credentials['password'] : '';
+
+        /** @var SemanticConnectorPPTApi $ppt_api */
+        $ppt_api = new $version_check_class_name($this->url, $credentials);
+        $this->config['version'] = $ppt_api->getVersion();
       }
       $version_infos['installed_version'] = $this->config['version'];
-      $class_prefix = '\Drupal\semantic_connector\Api\SemanticConnector' . $api_type . 'Api_';
     }
     // sOnr API.
     else {
@@ -217,8 +253,9 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
         $version_check_class_name = $class_prefix . str_replace('.', '_', $api_versions[0]);
         $credentials = !empty($this->credentials['username']) ? $this->credentials['username'] . ':' . $this->credentials['password'] : '';
 
+        $custom_graphsearch_path = $this->getGraphSearchPath();
         /** @var SemanticConnectorSonrApi $sonr_api */
-        $sonr_api = new $version_check_class_name($this->url, $credentials, $this->getGraphSearchPath());
+        $sonr_api = new $version_check_class_name($this->url, $credentials, ($custom_graphsearch_path != 'sonr-backend' ? $custom_graphsearch_path : ''));
 
         $this->config['graphsearch_configuration']['version'] = $sonr_api->getVersion();
       }
@@ -251,7 +288,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
    */
   public function getGraphSearchPath() {
     $graphsearch_path = '';
-    if (isset($this->config['graphsearch_configuration']) && isset($this->config['graphsearch_configuration']['version']) || empty($this->config['graphsearch_configuration']['version'])) {
+    if (isset($this->config['graphsearch_configuration']) && isset($this->config['graphsearch_configuration']['version']) && !empty($this->config['graphsearch_configuration']['version'])) {
       $graphsearch_path = 'sonr-backend';
       if (version_compare($this->config['graphsearch_configuration']['version'], '5.6.0', '>=')) {
         $graphsearch_path = 'GraphSearch';

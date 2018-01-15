@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\semantic_connector\Api;
+use Drupal\semantic_connector\SemanticConnectorWatchdog;
 use Drupal\Component\Serialization\Json;
 
 /**
@@ -41,6 +42,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
     );
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
+      'timeout' => 120 // Allowing up to 2 minutes for the process.
     ));
     $concept = Json::decode($result);
 
@@ -136,5 +138,224 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
     $file_path = Json::decode($file_path);
 
     return (filter_var($file_path, FILTER_VALIDATE_URL) !== FALSE) ? $file_path : '';
+  }
+
+  /**
+   * Get the corpora available for a PoolParty project.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to get the corpora for.
+   *
+   * @return array
+   *   An array of associative corpus arrays containing following properties:
+   *   - corpusId (string) --> Corpus id
+   *   - corpusName (string) --> Corpus name
+   *   - language (string) --> Language of corpus (en|de|es|fr|...)
+   *   - upToDate (boolean) --> Up to date flag
+   */
+  public function getCorpora($project_id) {
+    $corpora = array();
+
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/corpora';
+    $result = $this->connection->get($resource_path);
+    $corpus_data = Json::decode($result);
+    if (!is_null($corpus_data) && isset($corpus_data['jsonCorpusList'])) {
+      $corpora = $corpus_data['jsonCorpusList'];
+    }
+
+    return $corpora;
+  }
+
+  /**
+   * Push text into a PoolParty corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to use.
+   * @param string $corpus_id
+   *   The ID of the corpus to add the text to.
+   * @param string $title
+   *   The title of the document to push into the corpus.
+   * @param mixed $data
+   *   The text to push into the corpus.
+   * @param string $data_type
+   *   The type of the data. Can be one of the following values:
+   *   - "text" for a text
+   *   - "file" for a file object with a file ID
+   *   - "file direct" for all other files without an ID
+   * @param boolean $check_language
+   *   Checks if the language of the uploaded file and the language of the
+   *   corpus are the same.
+   *
+   * @return mixed
+   *  Status: 200 - OK
+   */
+  public function addDataToCorpus($project_id, $corpus_id, $title, $data, $data_type, $check_language = TRUE) {
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/add';
+    $post_parameters = array(
+      'corpusId' => $corpus_id,
+      'checkLanguage' => $check_language,
+    );
+
+    $result = FALSE;
+    switch ($data_type) {
+      // Extract concepts from a given text.
+      case 'text':
+        $post_parameters = array_merge(array(
+          'text' => $data,
+          'title' => $title,
+        ), $post_parameters);
+        $result = $this->connection->post($resource_path, array(
+          'data' => $post_parameters,
+        ));
+        break;
+
+      // Extract concepts from a given file uploaded via file field.
+      case 'file':
+        // Check if the file is in the public folder
+        // and the PoolParty GraphSearch server can read it.
+        if ($wrapper = \Drupal::service('stream_wrapper_manager')->getViaUri('public://')) {
+          $public_path = $wrapper->realpath();
+          $file_path = \Drupal::service('file_system')->realpath($data->getFileUri());
+          if (strpos($file_path, $public_path) !== FALSE) {
+            $post_parameters = array_merge(array(
+              'file' => '@' . $file_path,
+              'filename' => $title,
+            ), $post_parameters);
+            $result = $this->connection->post($resource_path, array(
+              'data' => $post_parameters,
+              'headers' => array('Content-Type' => 'multipart/form-data'),
+            ));
+          }
+        }
+        break;
+
+      // Extract concepts from a given file
+      case 'file direct':
+        $post_parameters = array_merge(array(
+          'file' => '@' . $data->file_path,
+          'filename' => $title,
+        ), $post_parameters);
+        $result = $this->connection->post($resource_path, array(
+          'data' => $post_parameters,
+          'headers' => array('Content-Type' => 'multipart/form-data'),
+        ));
+        break;
+
+      default:
+        SemanticConnectorWatchdog::message('PPT API', 'The type of the data to push content into a corpus is not supported.');
+        break;
+    }
+
+    return $result;
+  }
+
+  /**
+   * Get the metadata (additional information) of a corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project to get the corpus metadata for.
+   * @param string $corpus_id
+   *   The ID of the corpus to get the metadata for.
+   *
+   * @return array
+   *   An array of associative corpus arrays containing following properties:
+   *   - corpusName (string) --> Corpus name
+   *   - corpusId (string) --> Corpus id
+   *   - language (string) --> Language of corpus (en|de|es|fr|...)
+   *   - createdBy (string) --> Corpus created by user
+   *   - created (string) --> Time of creation of the corpus
+   *   - extractedTerms (int) --> Number of unique free terms
+   *   - concepts (int) --> Number of unique concepts
+   *   - suggestedTermOccurrences (int) --> Number of free terms
+   *   - conceptOccurrences (int) --> Number of concepts
+   *   - quality (string) --> Quality of the corpus
+   *     Possible values are "good", "moderate" and "poor"
+   *   - overallFileSize (string) --> Overall file size of documents in the corpus
+   *   - lastModified (string) --> Last modification date of the corpus
+   *   - storedDocuments (int) --> Number of stored documents in the corpus
+   */
+  public function getCorpusMetadata($project_id, $corpus_id) {
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/metadata';
+
+    $get_parameters = array(
+      'corpusId' => $corpus_id,
+    );
+    $result = $this->connection->get($resource_path, array(
+      'query' => $get_parameters,
+    ));
+    $corpus_data = Json::decode($result);
+
+    return $corpus_data;
+  }
+
+  /**
+   * Check if a corpus is up to date (or has to by analysed in case it is not).
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus to check.
+   * @param string $corpus_id
+   *   The ID of the corpus to check.
+   *
+   * @return boolean
+   *   TRUE if the corpus is up to date, FALSE if not
+   */
+  public function isCorpusUpToDate($project_id, $corpus_id) {
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/uptodate';
+
+    $get_parameters = array(
+      'corpusId' => $corpus_id,
+    );
+    $result = $this->connection->get($resource_path, array(
+      'query' => $get_parameters,
+    ));
+    $corpus_check = Json::decode($result);
+    if (is_array($corpus_check) && isset($corpus_check['upToDate'])) {
+      return $corpus_check['upToDate'];
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  /**
+   * Start the analysis of a corpus.
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus.
+   * @param string $corpus_id
+   *   The ID of the corpus to start the analysis for.
+   *
+   * @return array
+   *   An associative array informing about the success of the analysis
+   *   containing following keys:
+   *   - success (bool) --> TRUE if the analysis worked, FALSE if not
+   *   - message (string) --> This property is optional, but if it exists it
+   *       includes more details about why the connection could not be
+   *       established.
+   *   - since PP 6.0 also "plainMessage" and "reportable"
+   */
+  public function analyzeCorpus($project_id, $corpus_id) {
+    $analysis_info = array(
+      'success' => FALSE,
+      'message' => '',
+    );
+
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/analyze';
+
+    $post_parameters = array(
+      'corpusId' => $corpus_id,
+    );
+    $variables = array(
+      'data' => $post_parameters,
+      'timeout' => 600 // Allowing up to 10 minutes for the process.
+    );
+    $result = $this->connection->post($resource_path, $variables);
+
+    $result = Json::decode($result);
+    if (is_array($result)) {
+      $analysis_info = $result;
+    }
+
+    return $analysis_info;
   }
 }

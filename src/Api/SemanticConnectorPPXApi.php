@@ -63,7 +63,7 @@ abstract class SemanticConnectorPPXApi {
   /**
    * Extract concepts from given data.
    *
-   * @param object|string $data
+   * @param mixed $data
    *   Can be either a string for normal text-extraction of a file-object for
    *   text extraction of the file content.
    * @param string $language
@@ -76,11 +76,37 @@ abstract class SemanticConnectorPPXApi {
    *   - "url" for a valid URL
    *   - "file" for a file object with a file ID
    *   - "file direct" for all other files without an ID
+   * @param boolean $categorize
+   *   TRUE if categories should also be returned, FALSE if not.
+   *
+   * @return array
+   *   Array of concepts.
+   */
+  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '', $categorize = FALSE) {
+    return NULL;
+  }
+
+  /**
+   * Extract categories from given data.
+   *
+   * @param mixed $data
+   *   Can be either a string for normal text-extraction of a file-object for
+   *   text extraction of the file content.
+   * @param string $language
+   *   The iso-code of the language of the data.
+   * @param array $parameters
+   *   Additional parameters to forward to the API (e.g., projectId).
+   * @param string $data_type
+   *   The type of the data. Can be one of the following values:
+   *   - "text" for a text
+   *   - "url" for a valid URL
+   *   - "file" for a file object with a file ID
+   *   - "file direct" for all other files without an ID
    *
    * @return object
-   *   Object of concepts.
+   *   Object of categories.
    */
-  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '') {
+  public function extractCategories($data, $language, array $parameters = array(), $data_type = '') {
     return NULL;
   }
 

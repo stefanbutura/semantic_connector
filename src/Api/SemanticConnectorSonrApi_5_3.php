@@ -15,13 +15,15 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *
    * @param string $label
    *   The label of the custom search field.
-   * @param string $type
+   * @param string $field
    *   The name of the custom search field, e.g. 'content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to add the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is added, otherwise FALSE.
    */
-  public function addCustomSearchField($label, $type) {
+  public function addCustomSearchField($label, $field, $search_space_id = '') {
     $resource_path = '/sonr-backend/api/config/search/add';
     $type = 'dyn_lit_' . str_replace('-', '_', $type);
     $post_parameters = array(
@@ -43,14 +45,16 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
   /**
    * Deletes a custom search field for the suggestion call.
    *
-   * @param string $type
+   * @param string $field
    *   The name of the custom search field.
    *   Must start with 'dyn_lit_', e.g. 'dyn_lit_content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to delete the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is deleted, otherwise FALSE.
    */
-  public function deleteCustomSearchField($type) {
+  public function deleteCustomSearchField($field, $search_space_id = '') {
     $resource_path = '/sonr-backend/api/config/search/delete';
     $type = 'dyn_lit_' . str_replace('-', '_', $type);
     $post_parameters = array(
@@ -73,13 +77,15 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *
    * @param string $search_string
    *   The string to get suggestions for
+   * @param string $search_space_id
+   *   The ID of the search space to use for the suggestions.
    * @param array $parameters
    *   array(
    *    'locale' => (string) 'en',  (default: 'en')
    *    'count'  => (int)    10,    (default:   10)
    *  )
    *
-   * @return array
+   * @return boolean|array
    *   Array of concepts
    *   array(
    *    'id'      => (string) URI of concept
@@ -88,7 +94,7 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *    'field'   => (string) URI of conceptScheme
    *  )
    */
-  public function suggest($search_string, $parameters = array()) {
+  public function suggest($search_string, $search_space_id = '', $parameters = []) {
     $resource_path = '/sonr-backend/api/suggest/multi';
     $get_parameters = array(
       'searchString' => $search_string,

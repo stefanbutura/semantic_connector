@@ -169,7 +169,7 @@ abstract class SemanticConnectorSonrApi {
   /**
    * This method gets the server configuration of the sOnr webMining server.
    *
-   * @return array
+   * @return boolean|array
    *   pp-server => The URL to the PoolParty server used for the extraction
    *   project => The PoolParty project used for the extraction
    *   language => The configured language of the content.
@@ -179,25 +179,30 @@ abstract class SemanticConnectorSonrApi {
   }
 
   /**
-   * This method gets the field configuration of the sOnr webMining server.
+   * This method gets the field configuration of the PoolParty GraphSearch
+   * server.
    *
-   * @return array
+   * @param string $search_space_id
+   *   The ID of the search space to get the field config for.
+   *
+   * @return boolean|array
    *   searchFields -> Search field setup
    *   fieldNameMap -> Search field map
    *   fieldTypeMap -> Search field type map
    *   uriFields -> Search uri fields.
    */
-  public function getFieldConfig() {
+  public function getFieldConfig($search_space_id = '') {
     return FALSE;
   }
 
   /**
-   * This method searches in the sOnr index.
+   * This method searches in the GraphSearch index.
    *
+   * @param string $search_space_id
+   *   The search space to use for the search.
    * @param array $facets
    *   A list of facet objects that should be used for faceting the
    *   search. [optional]
-   *
    * @param array $filters
    *   A list of filter object parameters that define the query. [optional]
    *    array(
@@ -208,7 +213,6 @@ abstract class SemanticConnectorSonrApi {
    *      ),
    *      ...
    *    )
-   *
    * @param array $parameters
    *   A list of key value pairs [optional]
    *    array(
@@ -222,10 +226,10 @@ abstract class SemanticConnectorSonrApi {
    *      ),   (default: object('field' => 'date', 'direction' => 'DESC')
    *    )
    *
-   * @return array
+   * @return boolean|array
    *   List of items or FALSE in case of an error
    */
-  public function search($facets = array(), $filters = array(), $parameters = array()) {
+  public function search($search_space_id = '', $facets = [], $filters = [], $parameters = []) {
     return FALSE;
   }
 
@@ -234,13 +238,15 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param string $search_string
    *   The string to get suggestions for
+   * @param string $search_space_id
+   *   The ID of the search space to use for the suggestions.
    * @param array $parameters
    *   array(
    *    'locale' => (string) 'en',  (default: 'en')
    *    'count'  => (int)    10,    (default:   10)
    *  )
    *
-   * @return array
+   * @return boolean|array
    *   Array of concepts
    *   array(
    *    'id'      => (string) URI of concept
@@ -249,28 +255,34 @@ abstract class SemanticConnectorSonrApi {
    *    'field'   => (string) URI of conceptScheme
    *  )
    */
-  public function suggest($search_string, $parameters = array()) {
+  public function suggest($search_string, $search_space_id = '', $parameters = []) {
     return FALSE;
   }
 
   /**
    * Get all project dependent facets.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the facets for.
+   *
    * @return array
    *   A key value pair list of facets
    */
-  public function getFacets() {
-    return array();
+  public function getFacets($search_space_id = '') {
+    return [];
   }
 
   /**
    * Get all custom facets.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the custom facets for.
+   *
    * @return array
    *   A key value pair list of custom facets
    */
-  public function getCustomFacets() {
-    return array();
+  public function getCustomFacets($search_space_id = '') {
+    return [];
   }
 
   /**
@@ -278,13 +290,15 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param int $item_id
    *   The uri of the item
+   * @param string $search_space_id
+   *   The ID of the search to use to get similar content.
    * @param array $parameters
    *   Array of the parameters
    *
-   * @return array
+   * @return boolean|array
    *   A key value pair list of facets or FALSE in case of an error
    */
-  public function getSimilar($item_id, $parameters = array()) {
+  public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
     return FALSE;
   }
 
@@ -293,21 +307,23 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param string $text
    *   The text for the recommendation.
+   * @param string $search_space_id
+   *   The ID of the search space to use for the recommendation.
    * @param array $parameters
    *   array(
    *     'language' => (string) 'en', (default: 'en')
    *   )
    *
-   * @return array
+   * @return boolean|array
    *   List of concepts, free terms and recommended content or FALSE in case of
    *   an error
    */
-  public function getRecommendation($text, $parameters = array()) {
+  public function getRecommendation($text, $search_space_id = '', $parameters = []) {
     return FALSE;
   }
 
   /**
-   * Returns the link to a file collected from sOnr.
+   * Returns the link to a file collected from GraphSearch.
    *
    * @param string $file_path
    *   Relative path to a file in the collection
@@ -322,21 +338,27 @@ abstract class SemanticConnectorSonrApi {
   /**
    * Get all agents with their configuration and status.
    *
-   * @return array
+   * @param string $search_space_id
+   *   The ID of the search to get the agents for.
+   *
+   * @return boolean|array
    *   A list of agents with their configuration and status
    */
-  public function getAgents() {
-    return array();
+  public function getAgents($search_space_id = '') {
+    return [];
   }
 
   /**
    * Get all agents that have feed items stored in the search index.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the agents for
+   *
    * @return array
    *   A list of agents
    */
-  public function getIndexedAgents() {
-    return array();
+  public function getIndexedAgents($search_space_id = '') {
+    return [];
   }
 
   /**
@@ -344,11 +366,13 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param int $agent_id
    *   The ID of the agent
+   * @param string $search_space_id
+   *   The ID of the search to get the agent for.
    *
-   * @return array
+   * @return boolean|array
    *   List of agents with their configuration or FALSE in case of an error
    */
-  public function getAgent($agent_id) {
+  public function getAgent($agent_id, $search_space_id = '') {
     return FALSE;
   }
 
@@ -357,18 +381,20 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param array $config
    *   array(
-   *    'source'          => (string) 'EIP Water',
-   *    'url'             => (string) 'http://eip-water.eu/rss.xml'
+   *    'source'          => (string) 'My Source',
+   *    'url'             => (string) 'http://example.com/rss.xml'
    *    'username'        => (string) 'admin',
    *    'privateContent'  => (boolean) FALSE,
    *    'periodMillis'    => (int) 3600000,
    *    'spaceKey'        => (string) 'extern',
-   *  )
+   *   )
+   * @param string $search_space_id
+   *   The ID of the search to create the agent for.
    *
    * @return bool
    *   TRUE on success, FALSE on error
    */
-  public function addAgent($config) {
+  public function addAgent($config, $search_space_id = '') {
     return FALSE;
   }
 
@@ -379,18 +405,20 @@ abstract class SemanticConnectorSonrApi {
    *   The ID of the agent.
    * @param array $config
    *   array(
-   *    'source'          => (string) 'EIP Water',
-   *    'url'             => (string) 'http://eip-water.eu/rss.xml'
+   *    'source'          => (string) 'My Source',
+   *    'url'             => (string) 'http://example.com/rss.xml'
    *    'username'        => (string) 'admin',
    *    'privateContent'  => (boolean) FALSE,
    *    'periodMillis'    => (int) 3600000,
    *    'spaceKey'        => (string) 'extern',
-   *  )
+   *   )
+   * @param string $search_space_id
+   *   The ID of the search space the agent was created for.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function updateAgent($agent_id, $config) {
+  public function updateAgent($agent_id, $config, $search_space_id = '') {
     return FALSE;
   }
 
@@ -399,11 +427,13 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param int $agent_id
    *   The ID of the agent.
+   * @param string $search_space_id
+   *   The ID of the search space the agent was created for.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function deleteAgent($agent_id) {
+  public function deleteAgent($agent_id, $search_space_id = '') {
     return FALSE;
   }
 
@@ -412,11 +442,13 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param int $agent_id
    *   The ID of the agent.
+   * @param string $search_space_id
+   *   The ID of the search space the agent was created for.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function runAgent($agent_id) {
+  public function runAgent($agent_id, $search_space_id = '') {
     return FALSE;
   }
 
@@ -439,11 +471,13 @@ abstract class SemanticConnectorSonrApi {
    *      ]
    *    }
    *  )
+   * @param string $search_space_id
+   *   The ID of the search space to create the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function createPing(array $ping) {
+  public function createPing(array $ping, $search_space_id = '') {
     return FALSE;
   }
 
@@ -466,11 +500,13 @@ abstract class SemanticConnectorSonrApi {
    *        ]
    *    }
    *  )
+   * @param string $search_space_id
+   *   The ID of the search space to update the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function updatePing(array $ping) {
+  public function updatePing(array $ping, $search_space_id = '') {
     return FALSE;
   }
 
@@ -479,11 +515,13 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param string $page
    *   The URL of the page (= ID of the ping).
+   * @param string $search_space_id
+   *   The ID of the search space to delete the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function deletePing($page) {
+  public function deletePing($page, $search_space_id = '') {
     return FALSE;
   }
 
@@ -492,11 +530,13 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param string $source
    *   The name of the source.
+   * @param string $search_space_id
+   *   The ID of the search space to delete documents from.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function deleteIndex($source) {
+  public function deleteIndex($source, $search_space_id = '') {
     return FALSE;
   }
 
@@ -505,12 +545,14 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param array $uris
    *   A list of uris of concepts.
+   * @param string $search_space_id
+   *   The search space to get the trends for.
    *
    * @return array
    *   List of trends.
    */
-  public function getTrends($uris) {
-    return array();
+  public function getTrends($uris, $search_space_id = '') {
+    return [];
   }
 
   /**
@@ -518,33 +560,37 @@ abstract class SemanticConnectorSonrApi {
    *
    * @param string $label
    *   The label of the custom search field.
-   * @param string $type
+   * @param string $field
    *   The name of the custom search field.
    *   Must start with 'dyn_lit_', e.g. 'dyn_lit_content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to add the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is added, otherwise FALSE.
    */
-  public function addCustomSearchField($label, $type) {
+  public function addCustomSearchField($label, $field, $search_space_id = '') {
     return TRUE;
   }
 
   /**
    * Deletes a custom search field for the suggestion call.
    *
-   * @param string $type
+   * @param string $field
    *   The name of the custom search field.
    *   Must start with 'dyn_lit_', e.g. 'dyn_lit_content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to delete the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is deleted, otherwise FALSE.
    */
-  public function deleteCustomSearchField($type) {
+  public function deleteCustomSearchField($field, $search_space_id = '') {
     return TRUE;
   }
 
   /**
-   * Converts facet list into a list of object parameters for the sOnr.
+   * Converts facet list into a list of object parameters for the GraphSearch.
    *
    * @param array $facets
    *   The list of facet objects.
@@ -553,11 +599,11 @@ abstract class SemanticConnectorSonrApi {
    *   Array of facet objects.
    */
   protected function prepareFacets($facets) {
-    return array();
+    return [];
   }
 
   /**
-   * Maps filters into the defined filters or the sOnr.
+   * Maps filters into the defined filters or the GraphSearch.
    *
    * @param array $filters
    *   The list of filters.
@@ -566,7 +612,7 @@ abstract class SemanticConnectorSonrApi {
    *   Array of filter object parameters.
    */
   protected function prepareFilters($filters) {
-    return array();
+    return [];
   }
 
   /**

@@ -11,13 +11,13 @@ class SemanticConnectorPPXApi_6_0 extends SemanticConnectorPPXApi_5_6 {
   /**
    * {@inheritdoc}
    */
-  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '') {
-    $concepts = parent::extractConcepts($data, $language, $parameters, $data_type);
+  public function extractConcepts($data, $language, array $parameters = array(), $data_type = '', $categorize = FALSE) {
+    $concepts = parent::extractConcepts($data, $language, $parameters, $data_type, $categorize);
 
     // Rename the 'extractedTerms' property to the old 'freeTerms' property.
-    if (property_exists($concepts, 'extractedTerms')) {
-      $concepts->freeTerms = $concepts->extractedTerms;
-      unset($concepts->extractedTerms);
+    if (is_array($concepts) && isset($concepts['extractedTerms'])) {
+      $concepts['freeTerms'] = $concepts['extractedTerms'];
+      unset($concepts['extractedTerms']);
     }
 
     return $concepts;

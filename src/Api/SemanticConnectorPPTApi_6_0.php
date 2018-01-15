@@ -33,4 +33,22 @@ class SemanticConnectorPPTApi_6_0 extends SemanticConnectorPPTApi_5_6 {
       return FALSE;
     }
   }
+
+  /**
+   * Check if a corpus analysis is running for a project (only one analysis can
+   * run per project at a time).
+   *
+   * @param string $project_id
+   *   The ID of the PP project of the corpus to check.
+   *
+   * @return boolean
+   *   TRUE if a corpus is running for that project, FALSE if not
+   */
+  public function isCorpusAnalysisRunning($project_id) {
+    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/analysisRunning';
+
+    $result = $this->connection->get($resource_path);
+    $analysis_running = Json::decode($result);
+    return $analysis_running;
+  }
 }

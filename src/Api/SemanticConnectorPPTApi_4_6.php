@@ -120,8 +120,9 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   Only concepts with labels in this language will be displayed. If no
    *   language is given, the default language of the project will be used.
    *
-   * @return object
-   *   A concept scheme object within the respective PoolParty project.
+   * @return \stdClass[]
+   *   An array of concept scheme objects within the respective PoolParty
+   *   project.
    */
   public function getConceptSchemes($project_id, $language = '') {
     $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/schemes';
@@ -198,6 +199,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
     );
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
+      'timeout' => 120 // Allowing up to 2 minutes for the process.
     ));
     $concept = Json::decode($result);
 
@@ -418,11 +420,11 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
   /**
    * Adds a literal to an existing concept
    *
-   * @param $project_id
+   * @param string $project_id
    *  The ID of the PoolParty project.
-   * @param $concept_uri
+   * @param string $concept_uri
    *  The URI of the Concept.
-   * @param $property
+   * @param string $property
    *  The SKOS property. Possible values are:
    *  - preferredLabel
    *  - alternativeLabel
@@ -431,9 +433,9 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *  - scopeNote
    *  - example
    *  - notation
-   * @param $label
+   * @param string $label
    *  The RDF literal to add.
-   * @param null $language
+   * @param string $language
    *  The attribute language.
    *
    * @return mixed
@@ -461,15 +463,15 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
   /**
    * Adds a literal to an existing concept
    *
-   * @param $project_id
+   * @param string $project_id
    *  The ID of the PoolParty project.
-   * @param $concept_uri
+   * @param string $concept_uri
    *  The URI of the Concept to add the property to.
-   * @param $attribute_uri
+   * @param string $attribute_uri
    *  The URI of the custom attribute property.
-   * @param $value
+   * @param string $value
    *  The attribute value that should be added
-   * @param null $language
+   * @param string $language
    *  The attribute language.
    *
    * @return mixed

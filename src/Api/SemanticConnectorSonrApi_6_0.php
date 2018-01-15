@@ -39,15 +39,31 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
     }
 
     $data = Json::decode($result);
+    // Create a project with a fake search space.
+    $projects = array(
+      $data['facet'] => array(
+        'id' => $data['facet'],
+        'search_spaces' => array(
+          $data['facet'] => array(
+            'id' => $data['facet'],
+            'name' => '',
+            'language' => $data['defaultLanguage'],
+          ),
+        ),
+      ),
+    );
 
     return array(
-      'project' => ((is_array($data) && isset($data['facet'])) ? $data['facet'] : ''),
-      'language' => ((is_array($data) && isset($data['defaultLanguage'])) ? $data['defaultLanguage'] : ''),
+      'projects' => $projects
     );
   }
 
   /**
-   * This method gets the field configuration of the PoolParty GraphSearch server.
+   * This method gets the field configuration of the PoolParty GraphSearch
+   * server.
+   *
+   * @param string $search_space_id
+   *   The ID of the search space to get the field config for.
    *
    * @return boolean|array
    *   searchFields -> all available fields in a list
@@ -55,7 +71,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *   fieldTypeMap -> all fields grouped by type
    *   contextSearchFields -> all fields grouped by field context.
    */
-  public function getFieldConfig() {
+  public function getFieldConfig($search_space_id = '') {
     $resource_path = '/' . $this->graphSearchPath . '/admin/config/fields';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
@@ -64,16 +80,24 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
       return FALSE;
     }
 
+    // Make compatible with older version
+    if (!empty($facet_list['searchFields'])) {
+      foreach ($facet_list['searchFields'] as &$search_fields) {
+        $search_fields['name'] = $search_fields['field'];
+      }
+    }
+
     return $facet_list;
   }
 
   /**
    * This method searches in the GraphSearch index.
    *
+   * @param string $search_space_id
+   *   The search space to use for the search.
    * @param array $facets
    *   A list of facet objects that should be used for faceting the
    *   search. [optional]
-   *
    * @param array $filters
    *   A list of filter object parameters that define the query. [optional]
    *    array(
@@ -84,7 +108,6 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *      ),
    *      ...
    *    )
-   *
    * @param array $parameters
    *   A list of key value pairs [optional]
    *    array(
@@ -101,8 +124,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    * @return boolean|array
    *   List of items or FALSE in case of an error
    */
-  public function search($facets = array(), $filters = array(), $parameters = array()) {
-
+  public function search($search_space_id = '', $facets = [], $filters = [], $parameters = []) {
     $resource_path = '/' . $this->graphSearchPath . '/api/search';
 
     $sort = new \stdClass();
@@ -131,6 +153,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
       return FALSE;
     }
 
+    // Make compatible with older version
     $items = $this->makeSearchCompatible($items);
 
     return $items;
@@ -141,6 +164,8 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param string $search_string
    *   The string to get suggestions for
+   * @param string $search_space_id
+   *   The ID of the search space to use for the suggestions.
    * @param array $parameters
    *   array(
    *    'locale' => (string) 'en',  (default: 'en')
@@ -156,7 +181,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *    'field'   => (string) URI of conceptScheme
    *  )
    */
-  public function suggest($search_string, $parameters = array()) {
+  public function suggest($search_string, $search_space_id = '', $parameters = []) {
     $resource_path = '/' . $this->graphSearchPath . '/api/suggest/multi';
     $get_parameters = array(
       'searchString' => $search_string,
@@ -174,23 +199,34 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
       return FALSE;
     }
 
+    // Make compatible with older version
+    if (!empty($concepts['results'])) {
+      foreach ($concepts['results'] as &$result) {
+        $result['id'] = $result['value'];
+      }
+    }
+
     return $concepts;
   }
 
   /**
    * Get all project dependent facets.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the facets for.
+   *
    * @return boolean|array
    *   A key value pair list of facets
    */
-  public function getFacets() {
+  public function getFacets($search_space_id = '') {
     // Get the fields for the facets.
-    $facet_list = $this->getFieldConfig();
+    $facet_list = $this->getFieldConfig($search_space_id);
 
     if (!is_array($facet_list)) {
       return FALSE;
     }
 
+    // Make compatible with older version.
     // Add custom facets.
     $facets = array();
     if (!empty($facet_list['contextSearchFields']['CustomSearchFieldContext'])) {
@@ -211,17 +247,21 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
   /**
    * Get all custom facets.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the custom facets for.
+   *
    * @return boolean|array
    *   A key value pair list of custom facets
    */
-  public function getCustomFacets() {
+  public function getCustomFacets($search_space_id = '') {
     // Get the fields for the facets.
-    $facet_list = $this->getFieldConfig();
+    $facet_list = $this->getFieldConfig($search_space_id);
 
     if (!is_array($facet_list)) {
       return FALSE;
     }
 
+    // Make compatible with older version.
     // Add custom facets.
     $facets = array();
     if (!empty($facet_list['contextSearchFields']['CustomSearchFieldContext'])) {
@@ -238,13 +278,15 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param int $item_id
    *   The uri of the item
+   * @param string $search_space_id
+   *   The ID of the search to use to get similar content.
    * @param array $parameters
    *   Array of the parameters
    *
    * @return boolean|array
    *   A key value pair list of facets or FALSE in case of an error
    */
-  public function getSimilar($item_id, $parameters = array()) {
+  public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
     $resource_path = '/' . $this->graphSearchPath . '/api/similar';
     $get_parameters = array(
       'id' => $item_id,
@@ -264,6 +306,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
       return FALSE;
     }
 
+    // Make compatible with older version
     $similar = $this->makeSearchCompatible($similar);
 
     return $similar;
@@ -274,6 +317,8 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param string $text
    *   The text for the recommendation.
+   * @param string $search_space_id
+   *   The ID of the search space to use for the recommendation.
    * @param array $parameters
    *   array(
    *     'language' => (string) 'en', (default: 'en')
@@ -283,7 +328,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *   List of concepts, free terms and recommended content or FALSE in case of
    *   an error
    */
-  public function getRecommendation($text, $parameters = array()) {
+  public function getRecommendation($text, $search_space_id = '', $parameters = []) {
     $resource_path = '/' . $this->graphSearchPath . '/api/recommend';
     $post_parameters = array(
       'text' => $text,
@@ -301,8 +346,20 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
 
     $recommendations = Json::decode($result);
 
-    if (!is_object($recommendations)) {
+    if (!is_array($recommendations)) {
       return FALSE;
+    }
+    else {
+      // property 'prefLabel' is named 'label' now --> add prefLabel for
+      // backwards compatibility.
+      if (isset($recommendations['concepts'])) {
+        foreach ($recommendations['concepts'] as &$annotation) {
+          if (!isset($annotation['prefLabel'])) {
+            $annotation['prefLabel'] = $annotation['label'];
+          }
+          unset($annotation);
+        }
+      }
     }
 
     return $recommendations;
@@ -326,10 +383,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
   /**
    * Get all agents that have feed items stored in the search index.
    *
+   * @param string $search_space_id
+   *   The ID of the search space to get the agents for
+   *
    * @return array
    *   A list of agents
    */
-  public function getIndexedAgents() {
+  public function getIndexedAgents($search_space_id = '') {
     $agents = [];
 
     $parameters = [
@@ -337,15 +397,17 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
       'start' => 0,
       'maxFacetCount' => 10000,
     ];
-    $search = $this->search([], [], $parameters);
+    $search = $this->search($search_space_id, [], [], $parameters);
     if ($search == FALSE) {
       return [];
     }
 
     // Get the agents from the facet list.
-    $source_facet = $search['facetList'][0]['facets'];
-    foreach ($source_facet as $source) {
-      $agents[$source['label']] = $source['value'];
+    if (isset($search['facetList']) && !empty($search['facetList'])) {
+      $source_facet = $search['facetList'][0]['facets'];
+      foreach ($source_facet as $source) {
+        $agents[$source['label']] = $source['value'];
+      }
     }
 
     return $agents;
@@ -356,16 +418,18 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param array $config
    *   array(
-   *    'source'          => (string) 'EIP Water',
-   *    'url'             => (string) 'http://eip-water.eu/rss.xml'
+   *    'source'          => (string) 'My Source',
+   *    'url'             => (string) 'http://example.com/rss.xml'
    *    'username'        => (string) 'admin',
    *    'periodMillis'    => (int) 3600000,
-   *  )
+   *   )
+   * @param string $search_space_id
+   *   The ID of the search to create the agent for.
    *
    * @return bool
    *   TRUE on success, FALSE on error
    */
-  public function addAgent($config) {
+  public function addAgent($config, $search_space_id = '') {
     $config['privateContent'] = FALSE;
     $config['context'] = '';
 
@@ -385,16 +449,18 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *   The ID of the agent.
    * @param array $config
    *   array(
-   *    'source'          => (string) 'EIP Water',
-   *    'url'             => (string) 'http://eip-water.eu/rss.xml'
+   *    'source'          => (string) 'My Source',
+   *    'url'             => (string) 'http://example.com/rss.xml'
    *    'username'        => (string) 'admin',
    *    'periodMillis'    => (int) 3600000,
-   *  )
+   *   )
+   * @param string $search_space_id
+   *   The ID of the search space the agent was created for.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function updateAgent($agent_id, $config) {
+  public function updateAgent($agent_id, $config, $search_space_id = '') {
     $config['privateContent'] = FALSE;
     $config['context'] = '';
 
@@ -427,12 +493,14 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *      ]
    *    }
    *  )
+   * @param string $search_space_id
+   *   The ID of the search space to create the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function createPing(array $ping) {
-    return $this->updatePing($ping);
+  public function createPing(array $ping, $search_space_id = '') {
+    return $this->updatePing($ping, $search_space_id);
   }
 
   /**
@@ -454,11 +522,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *        ]
    *    }
    *  )
+   * @param string $search_space_id
+   *   The ID of the search space to update the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function updatePing(array $ping) {
+  public function updatePing(array $ping, $search_space_id = '') {
     $resource_path = '/' . $this->graphSearchPath . '/api/content/update';
     $ping['identifier'] = $ping['pageUrl'];
     $ping['text'] = substr($ping['text'], 0, 12000);
@@ -487,11 +557,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param string $page
    *   The URL of the page (= ID of the ping).
+   * @param string $search_space_id
+   *   The ID of the search space to delete the ping in.
    *
    * @return bool
    *   TRUE on success, FALSE on error.
    */
-  public function deletePing($page) {
+  public function deletePing($page, $search_space_id = '') {
     $resource_path = '/' . $this->graphSearchPath . '/api/content/delete/id';
 
     $result = $this->connection->post($resource_path, array(
@@ -508,11 +580,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *   The label of the custom search field.
    * @param string $field
    *   The name of the custom search field, e.g. 'content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to add the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is added, otherwise FALSE.
    */
-  public function addCustomSearchField($label, $field) {
+  public function addCustomSearchField($label, $field, $search_space_id = '') {
     $resource_path = '/' . $this->graphSearchPath . '/admin/suggest/add';
     $field = 'dyn_lit_' . str_replace('-', '_', $field);
     $post_parameters = array(
@@ -536,11 +610,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    *
    * @param string $field
    *   The name of the custom search field, e.g. 'content_type'.
+   * @param string $search_space_id
+   *   The ID of the search space to delete the custom search field for.
    *
    * @return boolean
-   *   TRUE if field is added, FALSE instead.
+   *   TRUE if field is deleted, otherwise FALSE.
    */
-  public function deleteCustomSearchField($field) {
+  public function deleteCustomSearchField($field, $search_space_id = '') {
     $resource_path = '/' . $this->graphSearchPath . '/admin/suggest/delete';
     $field = 'dyn_lit_' . str_replace('-', '_', $field);
     $post_parameters = array(

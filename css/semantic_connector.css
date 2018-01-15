@@ -35,6 +35,11 @@
   box-shadow: #000 0 0px 0px 0px, inset #460 0 0px 5px, #0f0 0 0px 5px;
 }
 
+.led-yellow {
+  background-color: #ffff00;
+  box-shadow: #000 0 0px 0px 0px, inset #460 0 0px 5px, #ff0 0 0px 5px;
+}
+
 .semantic-connector-overridden-value {
   color: red;
 }

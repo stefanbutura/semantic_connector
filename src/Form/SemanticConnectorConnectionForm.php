@@ -147,26 +147,24 @@ class SemanticConnectorConnectionForm extends EntityForm {
    *   The output array to be rendered.
    */
   function connectionTest(array &$form, FormStateInterface $form_state) {
+    /** @var \Drupal\semantic_connector\Entity\SemanticConnectorConnectionInterface $entity */
+    $entity = $this->entity;
+
     $available = '<div id="health_info" class="available"><div class="semantic-connector-led led-green" title="Service available"></div>' . t('The server is available.') . '</div>';
     $not_available = '<div id="health_info" class="not-available"><div class="semantic-connector-led led-red" title="Service NOT available"></div>' . t('The server is not available or the credentials are incorrect.') . '</div>';
     $markup = '';
 
     if (!empty($form_state->getValue('url')) && UrlHelper::isValid($form_state->getValue('url'), TRUE)) {
       // Create a new connection (without saving) with the current form data.
-      $connection = SemanticConnector::getConnection('pp_server');
+      $connection = SemanticConnector::getConnection($entity->getType());
       $connection->setUrl($form_state->getValue('url'));
       $connection->setCredentials(array(
         'username' => $form_state->getValue('username'),
         'password' => $form_state->getValue('password'),
       ));
 
-      $availability = $connection->getApi('PPX')->available();
-      if (isset($availability['message']) && !empty($availability['message'])) {
-        $markup = '<div id="health_info" class="not-available"><div class="semantic-connector-led led-red" title="Service NOT available"></div>' . $availability['message'] . '</div>';
-      }
-      else {
-        $markup = $availability['success'] ? $available : $not_available;
-      }
+      $availability = $connection->available();;
+      $markup = $availability ? $available : $not_available;
     }
 
     if (empty($markup)) {
