@@ -207,7 +207,7 @@ class SemanticConnectorController extends ControllerBase {
                     foreach ($connections_used[$server_id]['pp_graphsearch'] as $pp_graphsearch_use) {
                       // This PoolParty GraphSearch configuration uses the PoolParty GraphSearch server using
                       // this project on the current PP server.
-                      if ($pp_graphsearch_use['project_id'] == $project['id']) {
+                      if (isset($server_config['graphsearch_configuration']['projects'][$project['id']]['search_spaces'][$pp_graphsearch_use['project_id']])) {
                         $pp_graphsearch_project_uses[] = '<li>' . Link::fromTextAndUrl($pp_graphsearch_use['title'], Url::fromRoute('entity.pp_graphsearch.edit_config_form', array('pp_graphsearch' => $pp_graphsearch_use['id']), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
                       }
                     }
@@ -223,7 +223,7 @@ class SemanticConnectorController extends ControllerBase {
 
                     // Get all GraphSearch SeeAlso Engine configurations for
                     // search spaces available for the current project.
-                    $project_conf = $server_config['sonr_configuration']['projects'][$project->id];
+                    $project_conf = $server_config['graphsearch_configuration']['projects'][$project['id']];
                     if (isset($project_conf['search_spaces'])) {
                       foreach ($project_conf['search_spaces'] as $search_space) {
                         $key = $server_id . '|' . $search_space['id'];

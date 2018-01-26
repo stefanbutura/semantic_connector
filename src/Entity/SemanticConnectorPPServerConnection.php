@@ -92,24 +92,24 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     $this->config['projects'] = $projects;
 
     // Update the PoolParty GraphSearch configuration.
-    $sonr_config = array();
-    $sonr_api = $this->getApi('sonr');
+    $graphsearch_config = array();
+    $graphsearch_api = $this->getApi('sonr');
     // Get the version of the sOnr web service.
-    $sonr_version = $sonr_api->getVersion();
+    $graphsearch_version = $graphsearch_api->getVersion();
 
     // Get the appropriate API for the correct version.
     $this->config['graphsearch_configuration'] = array(
-      'version' => $sonr_version,
+      'version' => $graphsearch_version,
     );
-    $sonr_api = $this->getApi('sonr');
+    $graphsearch_api = $this->getApi('sonr');
 
     // If a PoolParty GraphSearch server exists, create a config.
-    if (!empty($sonr_version)) {
+    if (!empty($graphsearch_version)) {
       // Get the server-side configuration and save it also to the database.
-      $sonr_config = $sonr_api->getConfig();
-      $sonr_config['version'] = $sonr_version;
+      $graphsearch_config = $graphsearch_api->getConfig();
+      $graphsearch_config['version'] = $graphsearch_version;
     }
-    $this->config['graphsearch_configuration'] = $sonr_config;
+    $this->config['graphsearch_configuration'] = $graphsearch_config;
 
     parent::save();
 
