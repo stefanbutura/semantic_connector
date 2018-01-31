@@ -23,6 +23,7 @@ abstract class SemanticConnectorSonrApi {
   protected $customAttributes;
   protected $connection;
   protected $graphSearchPath = 'GraphSearch';
+  protected $apiVersion;
 
   /**
    * The constructor of the SonrApi-class.
@@ -43,6 +44,7 @@ abstract class SemanticConnectorSonrApi {
     if (!empty($custom_graphsearch_path)) {
       $this->graphSearchPath = $custom_graphsearch_path;
     }
+    $this->apiVersion = str_replace(array('Drupal\semantic_connector\Api\SemanticConnectorSonrApi_', '_'), array('', '.'), get_class($this));
   }
 
   /**
@@ -104,6 +106,34 @@ abstract class SemanticConnectorSonrApi {
    */
   public function getCustomAttributes() {
     return $this->customAttributes;
+  }
+
+  /**
+   * Get the configured used API version.
+   *
+   * @return string
+   *   The API version.
+   */
+  public function getApiVersion() {
+    return $this->apiVersion;
+  }
+
+  /**
+   * Get the path to the GraphSearch API.
+   *
+   * @return string
+   *   The path to the GraphSearch API.
+   */
+  public function getApiPath() {
+    // GraphSearch
+    if (version_compare($this->apiVersion, '5.6', '>=')) {
+      // Use API versioning for version 6.1+.
+      return '/' . $this->graphSearchPath . '/' . (version_compare($this->apiVersion, '6.1', '>=') ? $this->apiVersion . '/' : '') . 'api/';
+    }
+    // Old sOnr-support.
+    else {
+      return '/sonr-backend/api/';
+    }
   }
 
   /**

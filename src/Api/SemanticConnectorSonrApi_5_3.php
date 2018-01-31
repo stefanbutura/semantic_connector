@@ -24,7 +24,7 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *   TRUE if field is added, otherwise FALSE.
    */
   public function addCustomSearchField($label, $field, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/config/search/add';
+    $resource_path = $this->getApiPath() . 'config/search/add';
     $type = 'dyn_lit_' . str_replace('-', '_', $type);
     $post_parameters = array(
       'label' => $label,
@@ -55,7 +55,7 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *   TRUE if field is deleted, otherwise FALSE.
    */
   public function deleteCustomSearchField($field, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/config/search/delete';
+    $resource_path = $this->getApiPath() . 'config/search/delete';
     $type = 'dyn_lit_' . str_replace('-', '_', $type);
     $post_parameters = array(
       'name' => $type,
@@ -95,7 +95,7 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    *  )
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
-    $resource_path = '/sonr-backend/api/suggest/multi';
+    $resource_path = $this->getApiPath() . 'suggest/multi';
     $get_parameters = array(
       'searchString' => $search_string,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',

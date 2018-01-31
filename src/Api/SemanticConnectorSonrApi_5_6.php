@@ -17,7 +17,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE if the service is available, FALSE if not
    */
   public function available() {
-    $resource_path = '/' . $this->graphSearchPath . '/api/admin/heartbeat';
+    $resource_path = $this->getApiPath() . 'admin/heartbeat';
     $result = $this->connection->get($resource_path);
 
     return $result === '' ? TRUE : FALSE;
@@ -31,7 +31,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   language => The configured language of the content.
    */
   public function getConfig() {
-    $resource_path = '/' . $this->graphSearchPath . '/api/admin/config';
+    $resource_path = $this->getApiPath() . 'admin/config';
     $result = $this->connection->get($resource_path);
 
     if ($result === FALSE) {
@@ -72,7 +72,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   uriFields -> Search uri fields.
    */
   public function getFieldConfig($search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/config';
+    $resource_path = $this->getApiPath() . 'config';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
 
@@ -118,7 +118,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   List of items or FALSE in case of an error
    */
   public function search($search_space_id = '', $facets = [], $filters = [], $parameters = []) {
-    $resource_path = '/' . $this->graphSearchPath . '/api/search';
+    $resource_path = $this->getApiPath() . 'search';
 
     $sort = new \stdClass();
     $sort->field = 'date';
@@ -161,7 +161,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    */
   public function getFacets($search_space_id = '') {
     // Get the fields for the facets.
-    $resource_path = '/' . $this->graphSearchPath . '/api/config';
+    $resource_path = $this->getApiPath() . 'config';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
 
@@ -203,7 +203,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    */
   public function getCustomFacets($search_space_id = '') {
     // Get the custom fields.
-    $resource_path = '/' . $this->graphSearchPath . '/api/config/custom';
+    $resource_path = $this->getApiPath() . 'config/custom';
     $result = $this->connection->get($resource_path);
     $custom_facet_list = Json::decode($result);
 
@@ -231,7 +231,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   A key value pair list of facets or FALSE in case of an error
    */
   public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
-    $resource_path = '/' . $this->graphSearchPath . '/api/similar';
+    $resource_path = $this->getApiPath() . 'similar';
     $get_parameters = array(
       'id' => $item_id,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -271,7 +271,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   an error
    */
   public function getRecommendation($text, $search_space_id = '', $parameters = []) {
-    $resource_path = '/' . $this->graphSearchPath . '/api/recommend';
+    $resource_path = $this->getApiPath() . 'recommend';
     $post_parameters = array(
       'text' => $text,
       'language' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -307,7 +307,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   Link to the file in the collection or FALSE in case of an error
    */
   public function getLinkToFile($file_path) {
-    $resource_path = '/' . $this->graphSearchPath . '/api/collector/';
+    $resource_path = $this->getApiPath() . 'collector/';
     return $this->connection->getEndpoint() . $resource_path . $file_path;
   }
 
@@ -321,7 +321,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   A list of agents with their configuration and status
    */
   public function getAgents($search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/status';
+    $resource_path = $this->getApiPath() . 'agents/status';
     $result = $this->connection->get($resource_path);
 
     $agent_list = Json::decode($result);
@@ -356,7 +356,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   The configuration of a given agent or FALSE in case of an error
    */
   public function getAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->get($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -393,7 +393,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
     $config['privateContent'] = FALSE;
     $config['spaceKey'] = '';
 
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents';
+    $resource_path = $this->getApiPath() . 'agents';
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode($config),
@@ -424,7 +424,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
     $config['privateContent'] = FALSE;
     $config['spaceKey'] = '';
 
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->put($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -446,7 +446,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function deleteAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->delete($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -467,7 +467,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function runAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/runAgent';
+    $resource_path = $this->getApiPath() . 'agents/runAgent';
 
     $result = $this->connection->get($resource_path, array(
       'query' => array('id' => $agent_id),
@@ -503,7 +503,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function createPing(array $ping, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/content/create';
+    $resource_path = $this->getApiPath() . 'content/create';
     $ping['text'] = substr($ping['text'], 0, 12000);
 
     $result = $this->connection->post($resource_path, array(
@@ -539,7 +539,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function updatePing(array $ping, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/content/update';
+    $resource_path = $this->getApiPath() . 'content/update';
     $ping['text'] = substr($ping['text'], 0, 12000);
 
     $result = $this->connection->post($resource_path, array(
@@ -561,7 +561,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function deletePing($page, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/content/delete';
+    $resource_path = $this->getApiPath() . 'content/delete';
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode(array('pageUrl' => $page)),
@@ -582,7 +582,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE on success, FALSE on error.
    */
   public function deleteIndex($source, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/content/delete/all';
+    $resource_path = $this->getApiPath() . 'content/delete/all';
 
     $result = $this->connection->get($resource_path, array(
       'query' => array('source' => $source),
@@ -603,7 +603,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   List of trends.
    */
   public function getTrends($uris, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/trend/histories';
+    $resource_path = $this->getApiPath() . 'trend/histories';
 
     if (is_string($uris)) {
       $uris = array($uris);
@@ -636,7 +636,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE if field is added, otherwise FALSE.
    */
   public function addCustomSearchField($label, $field, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/config/search/add';
+    $resource_path = $this->getApiPath() . 'config/search/add';
     $field = 'dyn_lit_' . str_replace('-', '_', $field);
     $post_parameters = array(
       'label' => $label,
@@ -667,7 +667,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *   TRUE if field is deleted, otherwise FALSE.
    */
   public function deleteCustomSearchField($field, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/config/search/delete';
+    $resource_path = $this->getApiPath() . 'config/search/delete';
     $field = 'dyn_lit_' . str_replace('-', '_', $field);
     $post_parameters = array(
       'name' => $field,
@@ -707,7 +707,7 @@ class SemanticConnectorSonrApi_5_6 extends SemanticConnectorSonrApi_5_3  {
    *  )
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
-    $resource_path = '/' . $this->graphSearchPath . '/api/suggest/multi';
+    $resource_path = $this->getApiPath() . 'suggest/multi';
     $get_parameters = array(
       'searchString' => $search_string,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',

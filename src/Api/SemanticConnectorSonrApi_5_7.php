@@ -32,7 +32,7 @@ class SemanticConnectorSonrApi_5_7 extends SemanticConnectorSonrApi_5_6 {
     $config['privateContent'] = FALSE;
     $config['spaceKey'] = '';
 
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->post($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -54,7 +54,7 @@ class SemanticConnectorSonrApi_5_7 extends SemanticConnectorSonrApi_5_6 {
    *   TRUE on success, FALSE on error.
    */
   public function deleteAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/%id/delete';
+    $resource_path = $this->getApiPath() . 'agents/%id/delete';
 
     $result = $this->connection->post($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -76,7 +76,7 @@ class SemanticConnectorSonrApi_5_7 extends SemanticConnectorSonrApi_5_6 {
    *   TRUE on success, FALSE on error.
    */
   public function runAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/agents/runAgent';
+    $resource_path = $this->getApiPath() . 'agents/runAgent';
 
     $result = $this->connection->post($resource_path, array(
       'data' => array('id' => $agent_id),
@@ -98,7 +98,7 @@ class SemanticConnectorSonrApi_5_7 extends SemanticConnectorSonrApi_5_6 {
    *   TRUE on success, FALSE on error.
    */
   public function deleteIndex($source, $search_space_id = '') {
-    $resource_path = '/' . $this->graphSearchPath . '/api/content/delete/all';
+    $resource_path = $this->getApiPath() . 'content/delete/all';
 
     $result = $this->connection->post($resource_path, array(
       'data' => array('source' => $source),

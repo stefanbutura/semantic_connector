@@ -17,7 +17,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE if the service is available, FALSE if not
    */
   public function available() {
-    $resource_path = '/sonr-backend/api/heartbeat';
+    $resource_path = $this->getApiPath() . 'heartbeat';
     $result = $this->connection->get($resource_path);
 
     return $result === '' ? TRUE : FALSE;
@@ -31,7 +31,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   language => The configured language of the content.
    */
   public function getConfig() {
-    $resource_path = '/sonr-backend/api/admin/config';
+    $resource_path = $this->getApiPath() . 'admin/config';
     $result = $this->connection->get($resource_path);
 
     if ($result === FALSE) {
@@ -72,7 +72,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   uriFields -> Search uri fields.
    */
   public function getFieldConfig($search_space_id = '') {
-    $resource_path = '/sonr-backend/api/config';
+    $resource_path = $this->getApiPath() . 'config';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
 
@@ -118,7 +118,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   List of items or FALSE in case of an error
    */
   public function search($search_space_id = '', $facets = [], $filters = [], $parameters = []) {
-    $resource_path = '/sonr-backend/api/search';
+    $resource_path = $this->getApiPath() . 'search';
 
     $sort = new \stdClass();
     $sort->field = 'date';
@@ -173,7 +173,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *  )
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
-    $resource_path = '/sonr-backend/api/suggest';
+    $resource_path = $this->getApiPath() . 'suggest';
     $get_parameters = array(
       'searchString' => $search_string,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -205,7 +205,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    */
   public function getFacets($search_space_id = '') {
     // Get the fields for the facets.
-    $resource_path = '/sonr-backend/api/config';
+    $resource_path = $this->getApiPath() . 'config';
     $result = $this->connection->get($resource_path);
     $facet_list = Json::decode($result);
 
@@ -247,7 +247,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    */
   public function getCustomFacets($search_space_id = '') {
     // Get the custom fields.
-    $resource_path = '/sonr-backend/api/config/custom';
+    $resource_path = $this->getApiPath() . 'config/custom';
     $result = $this->connection->get($resource_path);
     $custom_facet_list = Json::decode($result);
 
@@ -275,7 +275,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   A key value pair list of facets or FALSE in case of an error
    */
   public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
-    $resource_path = '/sonr-backend/api/similar';
+    $resource_path = $this->getApiPath() . 'similar';
     $get_parameters = array(
       'id' => $item_id,
       'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -315,7 +315,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   an error
    */
   public function getRecommendation($text, $search_space_id = '', $parameters = []) {
-    $resource_path = '/sonr-backend/api/recommend';
+    $resource_path = $this->getApiPath() . 'recommend';
     $post_parameters = array(
       'text' => $text,
       'language' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
@@ -351,7 +351,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   Link to the file in the collection or FALSE in case of an error
    */
   public function getLinkToFile($file_path) {
-    $resource_path = '/sonr-backend/api/collector/';
+    $resource_path = $this->getApiPath() . 'collector/';
     return $this->connection->getEndpoint() . $resource_path . $file_path;
   }
 
@@ -365,7 +365,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   A list of agents with their configuration and status
    */
   public function getAgents($search_space_id = '') {
-    $resource_path = '/sonr-backend/api/agents/status';
+    $resource_path = $this->getApiPath() . 'agents/status';
     $result = $this->connection->get($resource_path);
 
     $agent_list = Json::decode($result);
@@ -445,7 +445,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   The configuration of a given agent or FALSE in case of an error
    */
   public function getAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->get($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -482,7 +482,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     $config['privateContent'] = FALSE;
     $config['spaceKey'] = '';
 
-    $resource_path = '/sonr-backend/api/agents';
+    $resource_path = $this->getApiPath() . 'agents';
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode($config),
@@ -513,7 +513,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
     $config['privateContent'] = FALSE;
     $config['spaceKey'] = '';
 
-    $resource_path = '/sonr-backend/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->put($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -535,7 +535,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function deleteAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/agents/%id';
+    $resource_path = $this->getApiPath() . 'agents/%id';
 
     $result = $this->connection->delete($resource_path, array(
       'parameters' => array('%id' => $agent_id),
@@ -556,7 +556,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function runAgent($agent_id, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/agents/runAgent';
+    $resource_path = $this->getApiPath() . 'agents/runAgent';
 
     $result = $this->connection->get($resource_path, array(
       'query' => array('id' => $agent_id),
@@ -592,7 +592,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function createPing(array $ping, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/pings/create';
+    $resource_path = $this->getApiPath() . 'pings/create';
     $ping['text'] = substr($ping['text'], 0, 12000);
 
     $result = $this->connection->post($resource_path, array(
@@ -628,7 +628,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function updatePing(array $ping, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/pings/update';
+    $resource_path = $this->getApiPath() . 'pings/update';
     $ping['text'] = substr($ping['text'], 0, 12000);
 
     $result = $this->connection->post($resource_path, array(
@@ -650,7 +650,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function deletePing($page, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/pings/delete';
+    $resource_path = $this->getApiPath() . 'pings/delete';
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode(array('pageUrl' => $page)),
@@ -671,7 +671,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   TRUE on success, FALSE on error.
    */
   public function deleteIndex($source, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/pings/deleteAll';
+    $resource_path = $this->getApiPath() . 'pings/deleteAll';
 
     $result = $this->connection->get($resource_path, array(
       'query' => array('source' => $source),
@@ -692,7 +692,7 @@ class SemanticConnectorSonrApi_4_6 extends SemanticConnectorSonrApi {
    *   List of trends.
    */
   public function getTrends($uris, $search_space_id = '') {
-    $resource_path = '/sonr-backend/api/trend/histories';
+    $resource_path = $this->getApiPath() . 'trend/histories';
 
     if (is_string($uris)) {
       $uris = array($uris);

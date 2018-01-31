@@ -45,7 +45,7 @@ class SemanticConnectorPPXApi_5_3 extends SemanticConnectorPPXApi_4_6 {
 
     $result = NULL;
     if (is_null($categories)) {
-      $resource_path = '/extractor/api/categorization';
+      $resource_path = $this->getApiPath() . 'categorization';
       if (empty($data_type)) {
         $data_type = $this->getTypeOfData($data);
       }

@@ -34,7 +34,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
       $properties[] = 'skos:prefLabel';
     }
 
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/subtree';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/subtree';
     $get_parameters = array(
       'root' => $uri,
       'properties' => implode(',', $properties),
@@ -65,7 +65,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *   The URI of the new concept scheme.
    */
   public function createConceptScheme($project_id, $title, $description, $creator = 'Drupal') {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/createConceptScheme';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/createConceptScheme';
     $post_parameters = array(
       'title' => $title,
       'description' => $description,
@@ -93,7 +93,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *   The URI of the new concept.
    */
   public function createConcept($project_id, $prefLabel, $parent) {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/createConcept';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/createConcept';
     $post_parameters = array(
       'prefLabel' => $prefLabel,
       'parent' => $parent,
@@ -127,7 +127,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *   The URL of the stored file or an empty string if an error occurred.
    */
   public function storeProject($project_id, $format = 'RDF/XML', $export_modules = 'concepts') {
-    $resource_path = '/PoolParty/api/projects/' . $project_id . '/store';
+    $resource_path = $this->getApiPath() . 'projects/' . $project_id . '/store';
     $get_parameters = array(
       'format' => $format,
       'exportModules' => $export_modules,
@@ -156,7 +156,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
   public function getCorpora($project_id) {
     $corpora = array();
 
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/corpora';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/corpora';
     $result = $this->connection->get($resource_path);
     $corpus_data = Json::decode($result);
     if (!is_null($corpus_data) && isset($corpus_data['jsonCorpusList'])) {
@@ -190,7 +190,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *  Status: 200 - OK
    */
   public function addDataToCorpus($project_id, $corpus_id, $title, $data, $data_type, $check_language = TRUE) {
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/add';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/add';
     $post_parameters = array(
       'corpusId' => $corpus_id,
       'checkLanguage' => $check_language,
@@ -275,7 +275,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *   - storedDocuments (int) --> Number of stored documents in the corpus
    */
   public function getCorpusMetadata($project_id, $corpus_id) {
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/metadata';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/metadata';
 
     $get_parameters = array(
       'corpusId' => $corpus_id,
@@ -300,7 +300,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
    *   TRUE if the corpus is up to date, FALSE if not
    */
   public function isCorpusUpToDate($project_id, $corpus_id) {
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/uptodate';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/uptodate';
 
     $get_parameters = array(
       'corpusId' => $corpus_id,
@@ -340,7 +340,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
       'message' => '',
     );
 
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/analyze';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/analyze';
 
     $post_parameters = array(
       'corpusId' => $corpus_id,

@@ -26,7 +26,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
       'success' => FALSE,
       'message' => '',
     );
-    $resource_path = '/PoolParty/api/version';
+    $resource_path = $this->getApiPath() . 'version';
     $result = $this->connection->get($resource_path, array('headers' => array('Accept' => 'text/plain')));
 
     if (is_string($result) && !empty($result)) {
@@ -46,7 +46,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   The PoolParty version formatted like '4.6'
    */
   public function getVersion() {
-    $resource_path = '/PoolParty/api/version';
+    $resource_path = $this->getApiPath() . 'version';
     return $this->connection->get($resource_path, array('headers' => array('Accept' => 'text/plain')));
   }
 
@@ -57,7 +57,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   A list of projects.
    */
   public function getProjects() {
-    $resource_path = '/PoolParty/api/projects';
+    $resource_path = $this->getApiPath() . 'projects';
     $result = $this->connection->get($resource_path);
     $projects = Json::decode($result);
 
@@ -98,7 +98,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   The URL of the stored file or an empty string if an error occurred.
    */
   public function storeProject($project_id, $format = 'RDF/XML', $export_modules = 'concepts') {
-    $resource_path = '/PoolParty/api/projects/' . $project_id . '/store';
+    $resource_path = $this->getApiPath() . 'projects/' . $project_id . '/store';
     $get_parameters = array(
       'format' => $format,
       'exportModules' => $export_modules,
@@ -125,7 +125,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   project.
    */
   public function getConceptSchemes($project_id, $language = '') {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/schemes';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/schemes';
     $get_parameters = array(
       'language' => $language,
     );
@@ -154,7 +154,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   A list of top concepts.
    */
   public function getTopConcepts($project_id, $scheme_uri, array $properties = array(), $language = '') {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/topconcepts';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/topconcepts';
     $get_parameters = array(
       'scheme' => $scheme_uri,
       'properties' => implode(',', $properties),
@@ -191,7 +191,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
       $properties[] = 'skos:prefLabel';
     }
 
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/subtree';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/subtree';
     $get_parameters = array(
       'uri' => $uri,
       'properties' => implode(',', $properties),
@@ -252,7 +252,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
       $properties[] = 'skos:prefLabel';
     }
 
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/concepts';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/concepts';
     $resource_path .= '?concepts=' . implode('&concepts=', $concept_uris);
     $get_parameters = array(
       'properties' => $properties,
@@ -311,7 +311,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
       $properties[] = 'skos:prefLabel';
     }
 
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/concept';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/concept';
     $get_parameters = array(
       'concept' => $concept_uri,
       'properties' => implode(',', $properties),
@@ -341,7 +341,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   The URI of the new concept scheme.
    */
   public function createConceptScheme($project_id, $title, $description, $creator = 'Drupal') {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/createConceptScheme';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/createConceptScheme';
     $post_parameters = array(
       'title' => $title,
       'description' => $description,
@@ -370,7 +370,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *   The URI of the new concept.
    */
   public function createConcept($project_id, $prefLabel, $parent) {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/createConcept';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/createConcept';
     $post_parameters = array(
       'prefLabel' => $prefLabel,
       'parent' => $parent,
@@ -404,7 +404,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *  Status: 200 - OK
    */
   public function addRelation($project_id, $source, $target, $property = 'broader') {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/addRelation';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/addRelation';
     $post_parameters = array(
       'sourceConcept' => $source,
       'targetConcept' => $target,
@@ -442,7 +442,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *  Status: 200 - OK
    */
   public function addLiteral($project_id, $concept_uri, $property, $label, $language = NULL) {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/addLiteral';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/addLiteral';
     $post_parameters = array(
       'concept' => $concept_uri,
       'label' => $label,
@@ -478,7 +478,7 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
    *  Status: 200 - OK
    */
   public function addCustomAttribute($project_id, $concept_uri, $attribute_uri, $value, $language = NULL) {
-    $resource_path = '/PoolParty/api/thesaurus/' . $project_id . '/addCustomAttribute';
+    $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/addCustomAttribute';
     $post_parameters = array(
       'resource' => $concept_uri,
       'property' => $attribute_uri,

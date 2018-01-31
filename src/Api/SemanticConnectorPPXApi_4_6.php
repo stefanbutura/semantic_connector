@@ -31,7 +31,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
         'success' => FALSE,
         'message' => '',
       );
-      $resource_path = '/extractor/api/heartbeat';
+      $resource_path = $this->getApiPath() . 'heartbeat';
       $result = Json::decode($this->connection->get($resource_path));
 
       if (is_array($result) && isset($result['success'])) {
@@ -58,7 +58,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
     \Drupal::moduleHandler()->alter('semantic_connector_ppx_getProjects', $this, $projects);
 
     if (is_null($projects)) {
-      $resource_path = '/extractor/api/projects';
+      $resource_path = $this->getApiPath() . 'projects';
       $result = $this->connection->get($resource_path);
 
       $projects = Json::decode($result);
@@ -123,7 +123,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
 
     $result = NULL;
     if (is_null($concepts)) {
-      $resource_path = '/extractor/api/extract';
+      $resource_path = $this->getApiPath() . 'extract';
       if (empty($data_type)) {
         $data_type = $this->getTypeOfData($data);
       }
@@ -237,7 +237,7 @@ class SemanticConnectorPPXApi_4_6 extends SemanticConnectorPPXApi {
     \Drupal::moduleHandler()->alter('semantic_connector_ppx_suggest', $this, $suggestion, $input);
 
     if (is_null($suggestion)) {
-      $resource_path = '/extractor/api/suggest';
+      $resource_path = $this->getApiPath() . 'suggest';
       $post_parameters = array_merge(array(
         'searchString' => $string,
         'language' => $language,

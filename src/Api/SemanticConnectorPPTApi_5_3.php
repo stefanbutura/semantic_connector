@@ -34,7 +34,7 @@ class SemanticConnectorPPTApi_5_3 extends SemanticConnectorPPTApi_4_6 {
    *   An array of history items.
    */
   public function getHistory($project_id, $from_time = NULL, $to_time = NULL, $events = array()) {
-    $resource_path = '/PoolParty/api/history/' . $project_id;
+    $resource_path = $this->getApiPath() . 'history/' . $project_id;
     $get_parameters = array();
 
     if (!is_null($from_time)) {
@@ -62,7 +62,7 @@ class SemanticConnectorPPTApi_5_3 extends SemanticConnectorPPTApi_4_6 {
    *   Array of PoolParty user groups.
    */
   public function getUserGroups() {
-    $resource_path = '/PoolParty/api/user/groups';
+    $resource_path = $this->getApiPath() . 'user/groups';
     $result = $this->connection->get($resource_path);
     $groups = Json::decode($result);
 
@@ -83,7 +83,7 @@ class SemanticConnectorPPTApi_5_3 extends SemanticConnectorPPTApi_4_6 {
    *   - upToDate (bool) --> Whether the extraction model is up-to-date or not
    */
   public function getExtractionModelInfo($project_id) {
-    $resource_path = '/PoolParty/api/indexbuilder/' . $project_id;
+    $resource_path = $this->getApiPath() . 'indexbuilder/' . $project_id;
     $result = $this->connection->get($resource_path);
     $extraction_model_info = Json::decode($result);
 
@@ -111,7 +111,7 @@ class SemanticConnectorPPTApi_5_3 extends SemanticConnectorPPTApi_4_6 {
       'message' => '',
     );
 
-    $resource_path = '/PoolParty/api/indexbuilder/' . $project_id . '/refresh';
+    $resource_path = $this->getApiPath() . 'indexbuilder/' . $project_id . '/refresh';
     $variables = array(
       'timeout' => 600 // Allowing up to 10 minutes for the process.
     );

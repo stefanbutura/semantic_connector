@@ -13,7 +13,7 @@ class SemanticConnectorPPTApi_6_0 extends SemanticConnectorPPTApi_5_6 {
    * @inheritdoc
    */
   public function createProject($title, $language_default = 'en', $user_groups = array('Public'), $settings = array()) {
-    $resource_path = '/PoolParty/api/projects/create';
+    $resource_path = $this->getApiPath() . 'projects/create';
     $post_parameters = $settings;
     $post_parameters += array(
       'title' => $title,
@@ -45,7 +45,7 @@ class SemanticConnectorPPTApi_6_0 extends SemanticConnectorPPTApi_5_6 {
    *   TRUE if a corpus is running for that project, FALSE if not
    */
   public function isCorpusAnalysisRunning($project_id) {
-    $resource_path = '/PoolParty/api/corpusmanagement/' . $project_id . '/analysisRunning';
+    $resource_path = $this->getApiPath() . 'corpusmanagement/' . $project_id . '/analysisRunning';
 
     $result = $this->connection->get($resource_path);
     $analysis_running = Json::decode($result);

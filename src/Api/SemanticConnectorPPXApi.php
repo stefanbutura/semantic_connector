@@ -11,6 +11,7 @@ use Drupal\semantic_connector\SemanticConnectorCurlConnection;
 abstract class SemanticConnectorPPXApi {
 
   protected $connection;
+  protected $apiVersion;
 
   /**
    * The constructor of the PoolParty Extractor class.
@@ -22,6 +23,7 @@ abstract class SemanticConnectorPPXApi {
    */
   public function __construct($endpoint, $credentials = '') {
     $this->connection = new SemanticConnectorCurlConnection($endpoint, $credentials);
+    $this->apiVersion = str_replace(array('Drupal\semantic_connector\Api\SemanticConnectorPPXApi_', '_'), array('', '.'), get_class($this));
   }
 
   /**
@@ -32,6 +34,27 @@ abstract class SemanticConnectorPPXApi {
    */
   public function getConnection() {
     return $this->connection;
+  }
+
+  /**
+   * Get the configured used API version.
+   *
+   * @return string
+   *   The API version.
+   */
+  public function getApiVersion() {
+    return $this->apiVersion;
+  }
+
+  /**
+   * Get the path to the PPX API.
+   *
+   * @return string
+   *   The path to the PPX API.
+   */
+  public function getApiPath() {
+    // Use API versioning for version 6.1+.
+    return '/extractor/' . (version_compare($this->apiVersion, '6.1', '>=') ? $this->apiVersion . '/' : '') . 'api/';
   }
 
   /**
