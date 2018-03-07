@@ -26,8 +26,8 @@ class SemanticConnectorPPTApi_6_0 extends SemanticConnectorPPTApi_5_6 {
     ));
 
     $result = Json::decode($result);
-    if (isset($result->id)) {
-      return $result->id;
+    if (isset($result['id'])) {
+      return $result['id'];
     }
     else {
       return FALSE;

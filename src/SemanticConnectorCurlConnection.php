@@ -278,7 +278,7 @@ class SemanticConnectorCurlConnection {
 
     // Set timeout.
     if (!(isset($variables['timeout']) && is_numeric($variables['timeout']) && intval($variables['timeout']) >= 0)) {
-      $variables['timeout'] = 5;
+      $variables['timeout'] = 30;
     }
     curl_setopt($ch, CURLOPT_TIMEOUT, $variables['timeout']);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);

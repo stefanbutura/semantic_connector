@@ -310,6 +310,7 @@ class SemanticConnector {
           case 'pp_taxonomy_manager':
             /** @var PPTaxonomyManagerConfig $config */
             foreach (PPTaxonomyManagerConfig::loadMultiple() as $config) {
+              $settings = $config->getConfig();
               $connection_id = $config->getConnectionId();
               if (!isset($connections_used[$connection_id])) {
                 $connections_used[$connection_id][$module_key] = array();
@@ -317,7 +318,9 @@ class SemanticConnector {
               $connections_used[$connection_id][$module_key][] = array(
                 'id' => $config->id(),
                 'title' => $config->getTitle(),
+                'root_level' => $settings['root_level'],
                 'project_id' => $config->getProjectId(),
+                'project_ids' => $settings['taxonomies'],
               );
             }
             break;
@@ -373,6 +376,8 @@ class SemanticConnector {
    *   - "html" --> The HTML of a concept, that will be used as the link text
    *   - "uri" --> The URI of the concept; if the URI is left empty, this item
    *     will be handled as a free term (no linking, but still added to the list)
+   *   - "alt_labels" (optional) --> The alt labels to be added into the hidden box
+   *   - "hidden_labels" (optional) --> The hidden labels to be added into the hidden box
    * @param int $connection_id
    *   The ID of the Semantic Connector connection.
    * @param string $project_id
@@ -527,7 +532,14 @@ class SemanticConnector {
               }
               $themed_item_content .= '</ul>';
             }
-            $themed_item_content .= '</li></ul></div>';
+            $hidden_box_content = '';
+            if (isset($concept['alt_labels']) && !empty($concept['alt_labels'])) {
+              $hidden_box_content .= $concept['alt_labels'];
+            }
+            if (isset($concept['hidden_labels']) && !empty($concept['hidden_labels'])) {
+              $hidden_box_content .= (!empty($hidden_box_content) ? ',' : '') . $concept['hidden_labels'];
+            }
+            $themed_item_content .= '</li></ul>' . (!empty($hidden_box_content) ? '<div class="semantic-connector-concept-hidden-box" style="display: none;">' . $hidden_box_content . '</div>' : '') . '</div>';
           }
           $themed_items[] = $themed_item_content;
         }
@@ -734,7 +746,7 @@ class SemanticConnector {
     $notification_config_update_required = FALSE;
 
     if ($notification_config['enabled']) {
-      $settings = \Drupal::config('semantic_connector.settings');
+      $settings = \Drupal::configFactory()->getEditable('semantic_connector.settings');
       $last_notification_check = $settings->get('global_notification_last_check');
       // Find out if a check is already required.
       if ((time() - $last_notification_check) >= $notification_config['interval'] || $force_check) {

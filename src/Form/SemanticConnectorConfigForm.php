@@ -150,7 +150,7 @@ class SemanticConnectorConfigForm extends ConfigFormBase {
     $form['notifications']['semantic_connector_notifications']['refresh_notifications'] = array(
       '#type' => 'link',
       '#title' => t('Refresh the global notifications now'),
-      '#href' => 'semantic-connector/refresh-notifications',
+      '#url' => Url::fromRoute('semantic_connector.refresh_notifications'),
       '#attributes' => array(
         'class' => array('button'),
       ),

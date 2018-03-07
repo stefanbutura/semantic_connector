@@ -162,9 +162,9 @@ abstract class SemanticConnectorPPTApi {
    *   Only concepts with labels in this language will be displayed. If no
    *   language is given, the default language of the project will be used.
    *
-   * @return \stdClass[]
-   *   An array of concept scheme objects within the respective PoolParty
-   *   project.
+   * @return array
+   *   An array of associative concept scheme arrays within the respective
+   *   PoolParty project.
    */
   public function getConceptSchemes($project_id, $language = '') {
     return array();
@@ -213,8 +213,8 @@ abstract class SemanticConnectorPPTApi {
    *   language is given, the default language of the project will be used.
    *
    * @return array
-   *   Array of concept objects within the respective PoolParty project with
-   *   following properties:
+   *   Array of associative concept arrays within the respective PoolParty
+   *   project with following keys:
    *   - uri --> URI of the concept
    *   - prefLabel --> Preferred label
    *   - altLabels --> Alternative labels
@@ -251,9 +251,9 @@ abstract class SemanticConnectorPPTApi {
    *   Only concepts with labels in this language will be displayed. If no
    *   language is given, the default language of the project will be used.
    *
-   * @return stdClass
-   *   A concept object within the respective PoolParty project with
-   *   following properties:
+   * @return array
+   *   An associative concept array within the respective PoolParty project with
+   *   following keys:
    *   - uri --> URI of the concept
    *   - prefLabel --> Preferred label
    *   - altLabels --> Alternative labels
@@ -265,7 +265,7 @@ abstract class SemanticConnectorPPTApi {
    *   - conceptSchemes --> Concept schemes
    */
   public function getConcept($project_id, $concept_uri, array $properties = array(), $language = '') {
-    return new stdClass();
+    return [];
   }
 
   /**

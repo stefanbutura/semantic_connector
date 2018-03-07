@@ -146,11 +146,17 @@ class SemanticConnectorController extends ControllerBase {
                 $project_taxonomy_manager_content = '';
                 if (isset($connections_used[$server_id]) && isset($connections_used[$server_id]['pp_taxonomy_manager'])) {
                   foreach ($connections_used[$server_id]['pp_taxonomy_manager'] as $pp_taxonomy_manager_use) {
-                    // This PoolParty GraphSearch configuration uses the PoolParty GraphSearch server using
-                    // this project on the current PP server.
-                    if ($pp_taxonomy_manager_use['project_id'] == $project['id']) {
-                      $project_taxonomy_manager_content = Link::fromTextAndUrl($pp_taxonomy_manager_use['title'], Url::fromRoute('entity.pp_taxonomy_manager.edit_config_form', array('pp_taxonomy_manager' => $pp_taxonomy_manager_use['id']), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
-                      break;
+                    if ($pp_taxonomy_manager_use['root_level'] == 'project') {
+                      if (in_array($project['id'], $pp_taxonomy_manager_use['project_ids'])) {
+                        $project_taxonomy_manager_content = Link::fromTextAndUrl($pp_taxonomy_manager_use['title'], Url::fromRoute('entity.pp_taxonomy_manager.edit_config_form', array('pp_taxonomy_manager' => $pp_taxonomy_manager_use['id']), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
+                        break;
+                      }
+                    }
+                    else {
+                      if ($pp_taxonomy_manager_use['project_id'] == $project['id']) {
+                        $project_taxonomy_manager_content = Link::fromTextAndUrl($pp_taxonomy_manager_use['title'], Url::fromRoute('entity.pp_taxonomy_manager.edit_config_form', array('pp_taxonomy_manager' => $pp_taxonomy_manager_use['id']), array('query' => array('destination' => 'admin/config/semantic-drupal/semantic-connector'))))->toString() . '</li>';
+                        break;
+                      }
                     }
                   }
                 }
@@ -399,7 +405,8 @@ class SemanticConnectorController extends ControllerBase {
   }
 
   /**
-   * A callback to refresh the notifications; the logic is done by hook_init.
+   * A callback to refresh the notifications; the logic is done by
+   * the SemanticConnectorNotificationsSubscriber class.
    */
   public function refreshNotifications() {
     // Clear the messages and return to the page where the user came from.
@@ -407,7 +414,7 @@ class SemanticConnectorController extends ControllerBase {
     drupal_set_message('Successfully refreshed the global notifications.');
 
     // Drupal Goto to forward a destination if one is available.
-    $url = Url::fromUri('');
+    $url = Url::fromUri('internal:/');
     if (\Drupal::request()->query->has('destination')) {
       $destination = \Drupal::request()->get('destination');
       if (\Drupal::service('path.current')->getPath() != $destination) {
@@ -415,6 +422,6 @@ class SemanticConnectorController extends ControllerBase {
       }
     }
 
-    return new RedirectResponse($url);
+    return new RedirectResponse($url->toString());
   }
 }
