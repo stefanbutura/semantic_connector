@@ -364,6 +364,13 @@ class SemanticConnector {
       $output .= '|<span class="semantic-connector-connection-version">Version: ' . $server_config['version'] . '</span>';
     }
 
+    // Get license information.
+    if ($connection->getType() == 'pp_server') {
+      $license_information = $connection->getApi('PPT')->getLicense();
+      $license_classes = self::checkPoolpartyLicenses($connection, $license_information, TRUE);
+      $output .= '|<span class="semantic-connector-connection-license ' . implode(' ', $license_classes) . '">License valid until: ' . (isset($license_information['expiryDateInMillis']) ? date('j. M Y', $license_information['expiryDateInMillis'] / 1000) : '-') . '</span>';
+    }
+
     $output .= '</div>';
     return $output;
   }
@@ -736,11 +743,14 @@ class SemanticConnector {
    *
    * @param bool $force_check
    *   Check for notifications, even if interval is not yet over.
+   * @param bool $send_mail
+   *   TRUE if mails should be sent out (if mail addresses are provided in the
+   *   notification settings.
    *
    * @return string[]
    *   Array of notification strings.
    */
-  public static function checkGlobalNotifications($force_check = FALSE) {
+  public static function checkGlobalNotifications($force_check = FALSE, $send_mail = FALSE) {
     $notifications = array();
     $notification_config = self::getGlobalNotificationConfig();
     $notification_config_update_required = FALSE;
@@ -769,6 +779,15 @@ class SemanticConnector {
         $settings->set('global_notifications', $notifications);
         if ($notification_config_update_required) {
           $settings->set('notifications', $notification_config);
+        }
+
+        // Send mails if required.
+        if (!empty($notifications) && $send_mail && !empty($notification_config['mail_to'])) {
+          $params = array(
+            'notifications' => $notifications,
+          );
+          $mailManager = \Drupal::service('plugin.manager.mail');
+          $mailManager->mail('semantic_connector', 'global_notifications', $notification_config['mail_to'], \Drupal::languageManager()->getDefaultLanguage()->getId(), $params, NULL, TRUE);
         }
 
         // Set the current timestamp as last check and update the notifications.
@@ -831,5 +850,69 @@ class SemanticConnector {
     }
 
     return $search_spaces;
+  }
+
+  /**
+   * Check if any extraction model has to be refreshed.
+   *
+   * @param SemanticConnectorPPServerConnection $connection
+   *   Optional; A specific PoolParty Server Connection to check for a valid
+   *   license.
+   * @param array $license
+   *   Optional; A fixed license to check against instead of fetching the actual
+   *   license used by the server.
+   * @param bool $class_only
+   *   If set to TRUE, instead of a message only "warning" or "error" will be
+   *   returned, depending on the date of expiration.
+   *
+   * @return string[]
+   *   Array of notification strings.
+   */
+  public static function checkPoolpartyLicenses($connection = NULL, $license = NULL, $class_only = FALSE) {
+    $notifications = array();
+
+    if (!is_null($connection)) {
+      $pp_server_connections = array($connection);
+    }
+    else {
+      $pp_server_connections = SemanticConnector::getConnectionsByType('pp_server');
+    }
+
+    /** @var SemanticConnectorPPServerConnection $pp_server_connection */
+    foreach ($pp_server_connections as $pp_server_connection) {
+      // Load the license information if required.
+      if (!is_null($license)) {
+        $license_information = $license;
+      }
+      else {
+        $license_information = $pp_server_connection->getApi('PPT')->getLicense();
+      }
+
+      if (isset($license_information['expiryDateInMillis'])) {
+        $current_time = time();
+        // License already expired.
+        if (($license_information['expiryDateInMillis'] / 1000) <= $current_time) {
+          if (!$class_only) {
+            // Add the notification.
+            $notifications[] = t('The PoolParty license for connection "%connection" is outdated.', array('%connection' => $pp_server_connection->getTitle()));
+          }
+          else {
+            $notifications[] = 'license-expired';
+          }
+        }
+        // License expires in the next 14 days.
+        elseif (($license_information['expiryDateInMillis'] / 1000) <= ($current_time + 1209600)) {
+          if (!$class_only) {
+            // Add the notification.
+            $notifications[] = t('The PoolParty license for connection "%connection" is about to run out on %expiration.', array('%connection' => $pp_server_connection->getTitle(), '%expiration' => date('j. M Y', $license_information['expiryDateInMillis'] / 1000)));
+          }
+          else {
+            $notifications[] = 'license-almost-expired';
+          }
+        }
+      }
+    }
+
+    return $notifications;
   }
 }

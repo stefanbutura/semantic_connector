@@ -602,4 +602,28 @@ abstract class SemanticConnectorPPTApi {
   public function isCorpusAnalysisRunning($project_id) {
     return FALSE;
   }
+
+  /**
+   * Returns the license of this PoolParty installation.
+   *
+   * @return array|boolean
+   *   An associative array of information about the license or FALSE in case
+   *   of an error. The array includes following keys:
+   *   - expiryDate (String) --> e.g. "2049-12-31T00:00:00.000+01:00"
+   *   - expiryDateInMillis (long) --> e.g. 2524518000000
+   *   - features (Array of String) --> e.g. ["some feature", "other feature"]
+   *   - ipConstraint (String) --> e.g. "*"
+   *   - issueDate (String) --> e.g. "2018-01-01T00:00:00.000+01:00"
+   *   - issueDateInMillis (long) --> e.g. 1514761200000
+   *   - licensee (String) --> text describing the licensee
+   *   - macConstraint (String) --> e.g. "*"
+   *   - maximumVersion (String) --> "6.0.1"
+   *   - minimumVersion (String) --> "7.0.1"
+   *   - type (String) --> e.g. "https://semantic-web.com/api/type#15230"
+   *   - uid (String) --> User ID of the license creator
+   *   - valid (boolean) --> if the license is valid
+   */
+  public function getLicense() {
+    return FALSE;
+  }
 }

@@ -106,11 +106,10 @@ class SemanticConnectorConfigForm extends ConfigFormBase {
 
     $form['notifications']['semantic_connector_notifications']['mail_to'] = array(
       '#type' => 'textfield',
-      '#title' => t('Mail addresses to notify via mail (not yet implemented)'),
+      '#title' => t('Mail addresses to notify via mail'),
       '#description' => t('A comma seperated list of mail addresses to send notification mails to.'),
       '#default_value' => $notifications['mail_to'],
       '#size' => 100,
-      '#disabled' => TRUE,
       '#states' => array(
         'visible' => array(
           ':input[name="semantic_connector_notifications[enabled]"]' => array('checked' => TRUE),

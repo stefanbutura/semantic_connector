@@ -45,10 +45,27 @@
 .semantic-connector-connection-buttons a,
 .semantic-connector-connection-buttons a.semantic-connector-connection-buttons-delete,
 .semantic-connector-connection-buttons a.semantic-connector-connection-buttons-refresh,
-.semantic-connector-connection-buttons .semantic-connector-connection-version {
+.semantic-connector-connection-buttons .semantic-connector-connection-version,
+.semantic-connector-connection-buttons .semantic-connector-connection-license {
   font-size: 0.923em;
   margin-right: 10px;
   margin-left: 10px;
+}
+
+.semantic-connector-connection-buttons .semantic-connector-connection-license.license-almost-expired {
+  background-color: #ffff00;
+  box-shadow: #000 0 0px 0px 0px, inset #460 0 0px 5px, #ff0 0 0px 5px;
+  border-radius: 10px;
+  padding: 0px 8px;
+  color: #000;
+}
+
+.semantic-connector-connection-buttons .semantic-connector-connection-license.license-expired {
+  background-color: #ff0000;
+  box-shadow: #000 0 0px 0px 0px, inset #600 0 0px 5px, #f00 0 0px 5px;
+  border-radius: 10px;
+  padding: 0px 8px;
+  color: #000;
 }
 
 .semantic-connector-connection-buttons a.semantic-connector-connection-buttons-edit {

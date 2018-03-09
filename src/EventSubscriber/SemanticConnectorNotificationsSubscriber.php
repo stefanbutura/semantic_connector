@@ -36,7 +36,7 @@ class SemanticConnectorNotificationsSubscriber implements EventSubscriberInterfa
     $current_path = substr(\Drupal::service('path.current')->getPath(), 1);
     // Global notifications (don't check on AJAX requests and during batches).
     if ($current_path != 'batch' && (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || !strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest')) {
-      $notifications = SemanticConnector::checkGlobalNotifications($current_path == 'semantic-connector/refresh-notifications');
+      $notifications = SemanticConnector::checkGlobalNotifications($current_path == 'semantic-connector/refresh-notifications', TRUE);
 
       // Check if existing notification messages have to be replaced / removed.
       $messages = drupal_get_messages('warning');
@@ -54,7 +54,6 @@ class SemanticConnectorNotificationsSubscriber implements EventSubscriberInterfa
         foreach ($notification_config['roles'] as $rid) {
           if (in_array($rid, $user_roles)) {
             $notification_message = t('Semantic Connector notifications:') . '<ul class="semantic_connector_notifications"><li>' . implode('</li><li>', $notifications) . '</li></ul>';
-
 
             // Add the possibility to refresh the notifications.
             if (\Drupal::currentUser()->hasPermission('administer semantic connector')) {
