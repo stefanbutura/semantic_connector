@@ -626,4 +626,63 @@ abstract class SemanticConnectorPPTApi {
   public function getLicense() {
     return FALSE;
   }
+
+  /**
+   * Suggest a set of concepts.
+   *
+   * @param string $project_id
+   *   The ID of the project to suggest the concept for.
+   * @param array $concepts
+   *   An array of information about the concept to suggest. Following keys are
+   *   supported:
+   *   - prefLabels (Array of LanguageLiteral) --> Suggested preferred labels of
+   *     the new concept - at least one must be in the project default language
+   *   - broaderConcept (Array of IRI) --> Suggested broader concepts of the new
+   *     concept. Optional
+   *   - checkForDuplicates (boolean) --> If another Concept with the same
+   *     preferred label already exists, an error will be thrown. (Default: true)
+   *   - definition (Array of LanguageLiteral) --> Textual definitions of the
+   *     new concept. Optional
+   *   - note (String) --> Notes describing the new concept. Optional
+   *   - relatedConcept (Array of IRI) --> Suggested related concepts of the new
+   *     concept. Optional
+   *   - score (float) --> Custom score for the new concept between 0 and 1.
+   *     Optional
+   *   - suffix (String) --> Suffix for manual uri creation. Optional
+   *   - topConceptOf (Array of IRI) --> Schemes of which the suggested concept
+   *     is a top concept. Optional
+   *
+   * @return array|bool
+   *   An array or concept-arrays containing a uri-key or FALSE in case of an error.
+   */
+  public function suggestConcepts($project_id, array $concepts) {
+    return FALSE;
+  }
+
+  /**
+   * Get the suggested concepts for a PoolParty project.
+   *
+   * @param string $project_id
+   *   The ID of the project to get the suggested concepts for.
+   * @param int $offset
+   *   Start index from where the suggested concepts results should be returned.
+   * @param int $number
+   *   The number of retrieved suggested concepts. Use 0 to get all suggested
+   *   concepts.
+   *
+   * @return array
+   *   An array of suggested concept arrays containing following keys:
+   *   - broaderConcepts (Array of IRI) --> Broader Concepts of the Suggested Concept
+   *   - date (String) --> Creation date of the Suggested Concept
+   *   - definitions (Array of Literal) --> Definitions of the Suggested Concept
+   *   - note (String) --> Note of the Suggested Concept
+   *   - prefLabels (Array of Literal) --> Preferred Labels URI of the Suggested Concept
+   *   - relatedConcepts (Array of IRI) --> Related Concepts of the Suggested Concept
+   *   - score (float) --> Score of the Suggested Concept
+   *   - topConceptOf (Array of IRI) --> Schemes in which the Suggested Concept is a top concept.
+   *   - uri (IRI) --> URI of the Suggested Concept
+   */
+  public function getSuggestedConcepts($project_id, $offset = 0, $number = 0) {
+    return array();
+  }
 }
