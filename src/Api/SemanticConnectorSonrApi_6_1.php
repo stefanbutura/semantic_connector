@@ -33,7 +33,6 @@ class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
     $resource_path = $this->getApiPath() . 'context/all';
     $result = $this->connection->get($resource_path);
 
-
     if ($result === FALSE) {
       return FALSE;
     }

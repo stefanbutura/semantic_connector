@@ -425,7 +425,7 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
   public function getSuggestedConcepts($project_id, $offset = 0, $number = 0) {
     $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/suggestedConcepts';
 
-    $get_parameters = [$offset];
+    $get_parameters = [];
     if ($offset > 0) {
       $get_parameters['offset'] = $offset;
     }
