@@ -117,10 +117,10 @@ class SemanticConnectorConnectionForm extends EntityForm {
     if ($is_new) {
       // Configuration entities need an ID manually set.
       $entity->set('id', SemanticConnector::createUniqueEntityMachineName($entity->getEntityTypeId(), $entity->get('title')));
-      drupal_set_message(t('Connection %title has been created.', array('%title' => $entity->get('title'))));
+      \Drupal::messenger()->addMessage(t('Connection %title has been created.', array('%title' => $entity->get('title'))));
     }
     else {
-      drupal_set_message(t('Updated connection %title.',
+      \Drupal::messenger()->addMessage(t('Updated connection %title.',
         array('%title' => $entity->get('title'))));
     }
 
@@ -172,7 +172,7 @@ class SemanticConnectorConnectionForm extends EntityForm {
     }
 
     // Clear potential error messages thrown during the requests.
-    drupal_get_messages();
+    \Drupal::messenger()->deleteAll();
 
     return array(
       '#type' => 'markup',

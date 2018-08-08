@@ -206,11 +206,12 @@ class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'suggest/multi';
-    $get_parameters = [
+
+    $get_parameters = array_merge([
       'searchString' => $search_string,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-    ];
+      'locale' => 'en',
+      'count' => 10,
+    ], $parameters);
 
     if (!empty($search_space_id)) {
       $get_parameters['searchSpaceId'] = $search_space_id;
@@ -251,13 +252,13 @@ class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
    */
   public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'similar';
-    $get_parameters = [
+    $get_parameters = array_merge([
       'id' => $item_id,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
+      'locale' => 'en',
+      'count' => 10,
       'fields' => 'dyn_uri_all_concepts,title,description',
       'documentFacets' => implode(",", $this->customAttributes),
-    ];
+    ], $parameters);
 
     if (!empty($search_space_id)) {
       $get_parameters['searchSpaceId'] = $search_space_id;
@@ -296,15 +297,15 @@ class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
    */
   public function getRecommendation($text, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'recommend';
-    $post_parameters = [
+    $post_parameters = array_merge([
       'text' => $text,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'start' => isset($parameters['start']) ? $parameters['start'] : 0,
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'numberOfConcepts' => isset($parameters['numberOfConcepts']) ? $parameters['numberOfConcepts'] : 10,
-      'numberOfTerms' => isset($parameters['numberOfTerms']) ? $parameters['numberOfTerms'] : 5,
+      'locale' => 'en',
+      'start' => 0,
+      'count' => 10,
+      'numberOfConcepts' => 10,
+      'numberOfTerms' => 5,
       'fields' => ['dyn_uri_all_concepts', 'title', 'description'],
-    ];
+    ], $parameters);
 
     if (!empty($search_space_id)) {
       $post_parameters['searchSpaceId'] = $search_space_id;

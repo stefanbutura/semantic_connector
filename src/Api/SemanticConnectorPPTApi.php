@@ -88,7 +88,7 @@ abstract class SemanticConnectorPPTApi {
    *   A list of projects.
    */
   public function getProjects() {
-    return array();
+    return [];
   }
 
   /**
@@ -124,7 +124,7 @@ abstract class SemanticConnectorPPTApi {
    * @return string|bool
    *   A list of projects.
    */
-  public function createProject($title, $language_default = 'en', $user_groups = array('Public'), $settings = array()) {
+  public function createProject($title, $language_default = 'en', $user_groups = array('Public'), $settings = []) {
     return FALSE;
   }
 
@@ -167,7 +167,7 @@ abstract class SemanticConnectorPPTApi {
    *   PoolParty project.
    */
   public function getConceptSchemes($project_id, $language = '') {
-    return array();
+    return [];
   }
 
   /**
@@ -186,8 +186,8 @@ abstract class SemanticConnectorPPTApi {
    * @return array
    *   A list of top concepts.
    */
-  public function getTopConcepts($project_id, $scheme_uri, array $properties = array(), $language = '') {
-    return array();
+  public function getTopConcepts($project_id, $scheme_uri, array $properties = [], $language = '') {
+    return [];
   }
 
   /**
@@ -225,8 +225,8 @@ abstract class SemanticConnectorPPTApi {
    *   - relateds --> Related concepts
    *   - conceptSchemes --> Concept schemes
    */
-  public function getConcepts($project_id, array $concept_uris, array $properties = array(), $language = NULL) {
-    return array();
+  public function getConcepts($project_id, array $concept_uris, array $properties = [], $language = NULL) {
+    return [];
   }
 
   /**
@@ -264,7 +264,7 @@ abstract class SemanticConnectorPPTApi {
    *   - relateds --> Related concepts
    *   - conceptSchemes --> Concept schemes
    */
-  public function getConcept($project_id, $concept_uri, array $properties = array(), $language = '') {
+  public function getConcept($project_id, $concept_uri, array $properties = [], $language = '') {
     return [];
   }
 
@@ -400,8 +400,8 @@ abstract class SemanticConnectorPPTApi {
    * @return array
    *   An array of history items.
    */
-  public function getHistory($project_id, $from_time = NULL, $to_time = NULL, $events = array()) {
-    return array();
+  public function getHistory($project_id, $from_time = NULL, $to_time = NULL, $events = []) {
+    return [];
   }
 
   /**
@@ -420,8 +420,8 @@ abstract class SemanticConnectorPPTApi {
    * @return array
    *   A list of concept objects in a tree format.
    */
-  public function getSubTree($project_id, $uri, array $properties = array(), $language = '') {
-    return array();
+  public function getSubTree($project_id, $uri, array $properties = [], $language = '') {
+    return [];
   }
 
   /**
@@ -431,7 +431,7 @@ abstract class SemanticConnectorPPTApi {
    *   Array of PoolParty user groups.
    */
   public function getUserGroups() {
-    return array();
+    return [];
   }
 
   /**
@@ -441,7 +441,7 @@ abstract class SemanticConnectorPPTApi {
    *   An associative array of available languages (iso-code --> label).
    */
   public function getLanguages() {
-    return array();
+    return [];
   }
 
   /**
@@ -494,7 +494,7 @@ abstract class SemanticConnectorPPTApi {
    *   - upToDate (boolean) --> Up to date flag
    */
   public function getCorpora($project_id) {
-    return array();
+    return [];
   }
 
   /**
@@ -683,6 +683,25 @@ abstract class SemanticConnectorPPTApi {
    *   - uri (IRI) --> URI of the Suggested Concept
    */
   public function getSuggestedConcepts($project_id, $offset = 0, $number = 0) {
-    return array();
+    return [];
+  }
+
+  /**
+   * Get all classifiers for a specific PoolParty project.
+   *
+   * @param string $project_id
+   *   The project UUID to get the classifiers for.
+   *
+   * @return array
+   *   An array of classifiers, each one is an associative array including
+   *   following keys:
+   *   - isOnline (boolean) --> Online status
+   *   - language (String) --> Language of classifier (en|de|es|fr|...)
+   *   - name (String) --> Classifier name
+   *   - status (String) --> Status
+   *   - uri (String) --> Classifier id
+   */
+  public function getClassifiers($project_id) {
+    return [];
   }
 }

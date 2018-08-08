@@ -214,7 +214,7 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     // list when they are fully functional. The order of the versions is not
     // important.
     $available_api_versions = array(
-      'pp_server' => array('4.6', '5.3', '5.6', '6.0', '6.2'),
+      'pp_server' => array('4.6', '5.3', '5.6', '6.0', '6.2', '7.0'),
       'sonr' => array('4.6', '5.3', '5.6', '5.7', '6.0', '6.1'),
     );
 
@@ -301,6 +301,37 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
     }
 
     return $graphsearch_path;
+  }
+
+  /**
+   * Get the SPARQL endpoints for this PP Server connection.
+   *
+   * @param string $project_id
+   *   Optional; If given only SPARQL endpoints for that project will be returned.
+   *
+   * @return array
+   *   An array of connection IDs of SPARQL endpoint connections.
+   */
+  public function getSparqlEndpoints($project_id = '') {
+    $sparql_endpoints = [];
+
+    $server_config = $this->getConfig();
+    $sparql_endpoint_urls = [];
+    if (isset($server_config['projects']) && !empty($server_config['projects'])) {
+      foreach ($server_config['projects'] as $project) {
+        if ((empty($project_id) || $project['id'] === $project_id) && isset($project['sparql_endpoint_url'])) {
+          $sparql_endpoint_urls[] = $project['sparql_endpoint_url'];
+        }
+      }
+    }
+
+    if (!empty($sparql_endpoint_urls)) {
+      $sparql_endpoints = SemanticConnector::searchConnections('sparql_endpoint', [
+        'url' => $sparql_endpoint_urls
+      ]);
+    }
+
+    return $sparql_endpoints;
   }
 
   /**

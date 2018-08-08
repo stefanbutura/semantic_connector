@@ -46,7 +46,7 @@ class SemanticConnectorWatchdog {
         default:
           $type = 'status';
       }
-      drupal_set_message(t($message, $variables), $type);
+      \Drupal::messenger()->addMessage(t($message, $variables), $type);
     }
   }
 }

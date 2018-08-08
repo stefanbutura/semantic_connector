@@ -61,7 +61,7 @@ class SemanticConnector {
   }
 
   /**
-   * Get all connection of the PoolParty Semantic Connector by connection-type.
+   * Get all connection of the PoolParty Semantic Connector by connection-type.g
    *
    * @param string $type
    *   The type of the connections to receive. Possible values: 'pp_server'
@@ -96,7 +96,7 @@ class SemanticConnector {
 
     $allowed_filter_keys = array('url', 'title', 'username', 'password', 'config');
     foreach ($search_filters as $search_filter_key => $search_filter_value) {
-      if (in_array($search_filter_key, $allowed_filter_keys) && is_string($search_filter_value)) {
+      if (in_array($search_filter_key, $allowed_filter_keys) && (is_string($search_filter_value) || is_array($search_filter_value))) {
         $connections_query->condition($search_filter_key, $search_filter_value);
       }
     }
@@ -139,7 +139,7 @@ class SemanticConnector {
     $allowed_types = array('pp_server', 'sparql_endpoint');
 
     if (!in_array($type, $allowed_types)) {
-      drupal_set_message(t('The type (%type) of the connection %title is wrong.', array('%type' => $type, '%title' => $title)), 'error');
+      \Drupal::messenger()->addMessage(t('The type (%type) of the connection %title is wrong.', array('%type' => $type, '%title' => $title)), 'error');
       return NULL;
     }
 
@@ -914,5 +914,15 @@ class SemanticConnector {
     }
 
     return $notifications;
+  }
+
+  /**
+   * Find out if the Visual Mapper exists.
+   *
+   * @return bool
+   *   TRUE if the Visual Mapper exists, FALSE if not
+   */
+  public static function visualMapperExists() {
+    return file_exists(\Drupal::service('file_system')->realpath('libraries/visual_mapper/visual_mapper.min.js'));
   }
 }

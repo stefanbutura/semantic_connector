@@ -39,11 +39,11 @@ class SemanticConnectorNotificationsSubscriber implements EventSubscriberInterfa
       $notifications = SemanticConnector::checkGlobalNotifications($current_path == 'semantic-connector/refresh-notifications', TRUE);
 
       // Check if existing notification messages have to be replaced / removed.
-      $messages = drupal_get_messages('warning');
+      $messages = \Drupal::messenger()->deleteByType('warning');
       if (!empty($warning_messages) && isset($messages['warning'])) {
         foreach ($messages['warning'] as $warning_message) {
           if (strpos($warning_message, '<ul class="semantic_connector_notifications">') === FALSE) {
-            drupal_set_message($warning_message, 'warning');
+            \Drupal::messenger()->addMessage($warning_message, 'warning');
           }
         }
       }
@@ -60,7 +60,7 @@ class SemanticConnectorNotificationsSubscriber implements EventSubscriberInterfa
               $notification_message .= '<br />' . Link::fromTextAndUrl('Refresh the notifications', Url::fromRoute('semantic_connector.refresh_notifications', [], ['query' => ['destination' => $current_path]]))->toString() . ' | ' . Link::fromTextAndUrl('Go to the notification settings', Url::fromRoute('semantic_connector.config', [], ['query' => ['destination' => $current_path]]))->toString();
             }
 
-            drupal_set_message(new FormattableMarkup($notification_message, array()), 'warning');
+            \Drupal::messenger()->addMessage(new FormattableMarkup($notification_message, array()), 'warning');
             break;
           }
         }

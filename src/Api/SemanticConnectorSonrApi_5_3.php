@@ -96,12 +96,13 @@ class SemanticConnectorSonrApi_5_3 extends SemanticConnectorSonrApi_4_6 {
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'suggest/multi';
-    $get_parameters = array(
+
+    $get_parameters = array_merge([
       'searchString' => $search_string,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
+      'locale' => 'en',
+      'count' => 10,
       'format' => 'json',
-    );
+    ], $parameters);
 
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,

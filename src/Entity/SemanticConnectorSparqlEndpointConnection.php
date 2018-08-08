@@ -1,9 +1,9 @@
 <?php
 
 namespace Drupal\semantic_connector\Entity;
+use Drupal\semantic_connector\Api\SemanticConnectorSparqlApi;
 use EasyRdf_Exception;
 use EasyRdf_Http;
-use EasyRdf_Sparql_Client;
 
 /**
  * @ConfigEntityType(
@@ -54,7 +54,7 @@ class SemanticConnectorSparqlEndpointConnection extends SemanticConnectorConnect
    * {@inheritdoc|}
    */
   public function available() {
-    /** @var EasyRdf_Sparql_Client $sparql_client */
+    /** @var SemanticConnectorSparqlApi $sparql_client */
     $sparql_client = $this->getApi();
     $query = "
       SELECT *
@@ -87,7 +87,7 @@ class SemanticConnectorSparqlEndpointConnection extends SemanticConnectorConnect
       EasyRdf_Http::setDefaultHttpClient($http_client);
     }
 
-    return new EasyRdf_Sparql_Client($this->url);
+    return new SemanticConnectorSparqlApi($this->url);
   }
 
   /**

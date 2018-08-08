@@ -183,11 +183,12 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    */
   public function suggest($search_string, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'suggest/multi';
-    $get_parameters = array(
+
+    $get_parameters = array_merge([
       'searchString' => $search_string,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-    );
+      'locale' => 'en',
+      'count' => 10,
+    ], $parameters);
 
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
@@ -288,13 +289,13 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    */
   public function getSimilar($item_id, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'similar';
-    $get_parameters = array(
+    $get_parameters = array_merge([
       'id' => $item_id,
-      'locale' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
+      'locale' => 'en',
+      'count' => 10,
       'fields' => 'dyn_uri_all_concepts,title,description',
       'documentFacets' => $this->customAttributes,
-    );
+    ], $parameters);
 
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
@@ -330,15 +331,15 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
    */
   public function getRecommendation($text, $search_space_id = '', $parameters = []) {
     $resource_path = $this->getApiPath() . 'recommend';
-    $post_parameters = array(
+    $post_parameters = array_merge([
       'text' => $text,
       'language' => isset($parameters['locale']) ? $parameters['locale'] : 'en',
-      'start' => isset($parameters['start']) ? $parameters['start'] : 0,
-      'count' => isset($parameters['count']) ? $parameters['count'] : 10,
-      'numberOfConcepts' => isset($parameters['numberOfConcepts']) ? $parameters['numberOfConcepts'] : 10,
-      'numberOfTerms' => isset($parameters['numberOfTerms']) ? $parameters['numberOfTerms'] : 5,
+      'start' => 0,
+      'count' => 10,
+      'numberOfConcepts' => 10,
+      'numberOfTerms' => 5,
       'fields' => array('dyn_uri_all_concepts', 'title', 'description'),
-    );
+    ], $parameters);
 
     $result = $this->connection->post($resource_path, array(
       'data' => Json::encode($post_parameters),

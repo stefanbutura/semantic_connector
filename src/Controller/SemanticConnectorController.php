@@ -376,7 +376,7 @@ class SemanticConnectorController extends ControllerBase {
    */
   public function refreshConnection($connection) {
     $connection->save();
-    drupal_set_message(t('Successfully refreshed connection "%contitle".', array('%contitle' => $connection->getTitle())));
+    \Drupal::messenger()->addMessage(t('Successfully refreshed connection "%contitle".', array('%contitle' => $connection->getTitle())));
 
     return new RedirectResponse(Url::fromRoute('semantic_connector.overview')->toString());
   }
@@ -410,8 +410,8 @@ class SemanticConnectorController extends ControllerBase {
    */
   public function refreshNotifications() {
     // Clear the messages and return to the page where the user came from.
-    drupal_get_messages();
-    drupal_set_message('Successfully refreshed the global notifications.');
+    \Drupal::messenger()->deleteAll();
+    \Drupal::messenger()->addMessage('Successfully refreshed the global notifications.');
 
     // Drupal Goto to forward a destination if one is available.
     $url = Url::fromUri('internal:/');

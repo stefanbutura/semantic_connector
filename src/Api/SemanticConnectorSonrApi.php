@@ -178,7 +178,7 @@ abstract class SemanticConnectorSonrApi {
     // GraphSearch instead.
     else {
       // Remove error messages from the failed GET request.
-      drupal_get_messages('error');
+      \Drupal::messenger()->deleteByType('error');
 
       $resource_path = '/' . $this->graphSearchPath . '/admin';
       $sonr_website_html = $this->connection->get($resource_path, array(
