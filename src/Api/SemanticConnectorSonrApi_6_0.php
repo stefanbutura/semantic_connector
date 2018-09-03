@@ -201,11 +201,7 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
     }
 
     // Make compatible with older version
-    if (!empty($concepts['results'])) {
-      foreach ($concepts['results'] as &$result) {
-        $result['id'] = $result['value'];
-      }
-    }
+    $concepts = $this->makeSuggestCompatible($concepts);
 
     return $concepts;
   }
@@ -679,6 +675,25 @@ class SemanticConnectorSonrApi_6_0 extends SemanticConnectorSonrApi_5_7 {
         }
       }
       unset($item['facetList']);
+    }
+
+    return $result;
+  }
+
+  /**
+   * Changes the result array so that it is compatible with older version.
+   *
+   * @param array $result
+   *   The result of the search API call.
+   *
+   * @return array
+   *   The compatible result for older version.
+   */
+  protected function makeSuggestCompatible($result) {
+    if (!empty($result['results'])) {
+      foreach ($result['results'] as &$concept) {
+        $concept['id'] = $concept['value'];
+      }
     }
 
     return $result;

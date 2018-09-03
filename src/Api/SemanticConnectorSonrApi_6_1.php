@@ -4,9 +4,9 @@ namespace Drupal\semantic_connector\Api;
 use Drupal\Component\Serialization\Json;
 
 /**
- * Class SemanticConnectorSonrApi_6_0
+ * Class SemanticConnectorSonrApi_6_1
  *
- * API Class for the version 6.0.
+ * API Class for the version 6.1.
  */
 class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
   /**
@@ -228,11 +228,7 @@ class SemanticConnectorSonrApi_6_1 extends SemanticConnectorSonrApi_6_0 {
     }
 
     // Make compatible with older version
-    if (!empty($concepts['results'])) {
-      foreach ($concepts['results'] as &$result) {
-        $result['id'] = $result['value'];
-      }
-    }
+    $concepts = $this->makeSuggestCompatible($concepts);
 
     return $concepts;
   }

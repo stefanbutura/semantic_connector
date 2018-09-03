@@ -546,7 +546,7 @@ class SemanticConnector {
             if (isset($concept['hidden_labels']) && !empty($concept['hidden_labels'])) {
               $hidden_box_content .= (!empty($hidden_box_content) ? ',' : '') . $concept['hidden_labels'];
             }
-            $themed_item_content .= '</li></ul>' . (!empty($hidden_box_content) ? '<div class="semantic-connector-concept-hidden-box" style="display: none;">' . $hidden_box_content . '</div>' : '') . '</div>';
+            $themed_item_content .= '</li></ul>' . (!empty($hidden_box_content) ? '<div class="semantic-connector-concept-hidden-box">' . $hidden_box_content . '</div>' : '') . '</div>';
           }
           $themed_items[] = $themed_item_content;
         }

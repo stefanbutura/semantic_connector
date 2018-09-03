@@ -2,6 +2,8 @@
 
 namespace Drupal\semantic_connector\Api;
 
+use Drupal\Component\Serialization\Json;
+
 /**
  * Class SemanticConnectorPPTApi_7_0
  *

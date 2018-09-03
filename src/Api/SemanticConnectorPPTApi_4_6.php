@@ -253,16 +253,25 @@ class SemanticConnectorPPTApi_4_6 extends SemanticConnectorPPTApi {
     }
 
     $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/concepts';
-    $resource_path .= '?concepts=' . implode('&concepts=', $concept_uris);
-    $get_parameters = array(
-      'properties' => $properties,
-      'language' => $language,
-    );
-    $result = $this->connection->get($resource_path, array(
-      'query' => $get_parameters,
-    ));
-    $concepts = Json::decode($result);
+    foreach ($concept_uris as $uri_count => $concept_uri) {
+      if ($uri_count == 0) {
+        $resource_path .= '?';
+      }
+      else {
+        $resource_path .= '&';
+      }
+      $resource_path .= 'concepts=' . urlencode($concept_uri);
+    }
+    foreach ($properties as $property) {
+      $resource_path .= '&properties=' . urlencode($property);
+    }
+    if (!is_null($language)) {
+      $resource_path .= '&language=' . urlencode($language);
+    }
 
+    $result = $this->connection->get($resource_path);
+
+    $concepts = Json::decode($result);
     return $concepts;
   }
 

@@ -338,14 +338,17 @@ class SemanticConnectorCurlConnection {
     }
 
     // Set the options to be used by url().
-    $options = array(
-      'query' => isset($variables['query']) ? $variables['query'] : [],
-      'absolute' => TRUE,
-      'alias' => TRUE,
-      'external' => TRUE,
-    );
+    if (isset($variables['query']) && !empty($variables['query'])) {
+      $options = array(
+        'query' => $variables['query'],
+        'absolute' => TRUE,
+        'alias' => TRUE,
+        'external' => TRUE,
+      );
 
-    $url = \Drupal\Core\Url::fromUri($url, $options)->toString();
+      $url = \Drupal\Core\Url::fromUri($url, $options)->toString();
+    }
+
     return $url;
   }
 

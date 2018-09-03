@@ -131,3 +131,7 @@ table.semantic-connector-tablesorter thead tr .headerSortUp {
   font-size: 12px;
   padding: 5px 8px
 }
+
+.semantic-connector-concept-hidden-box {
+  display: none;
+}
