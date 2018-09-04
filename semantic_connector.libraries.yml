@@ -32,9 +32,9 @@ visual_mapper:
   header: true
   js:
     /libraries/d3js/d3.min.js: {}
-    /libraries/visual_mapper/visual_mapper.min.js: {}
+    js/visual_mapper/visual_mapper.min.js: {}
   css:
     theme:
-      /libraries/visual_mapper/visual_mapper.css: {}
+      js/visual_mapper/visual_mapper.css: {}
   dependencies:
     - core/jquery

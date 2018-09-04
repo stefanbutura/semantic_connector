@@ -921,8 +921,22 @@ class SemanticConnector {
    *
    * @return bool
    *   TRUE if the Visual Mapper exists, FALSE if not
+   *
+   * @deprecated No longer used since the VisualMapper library was included in
+   *   the Semantic Connector in version 8.x-1.0. Use visualMapperUsable()
+   *   instead.
    */
   public static function visualMapperExists() {
-    return file_exists(\Drupal::service('file_system')->realpath('libraries/visual_mapper/visual_mapper.min.js'));
+    return self::visualMapperUsable();
+  }
+
+  /**
+   * Find out if the Visual Mapper can be used.
+   *
+   * @return bool
+   *   TRUE if the Visual Mapper can be used, FALSE if not
+   */
+  public static function visualMapperUsable() {
+    return file_exists(\Drupal::service('file_system')->realpath('libraries/d3js/d3.min.js'));
   }
 }
