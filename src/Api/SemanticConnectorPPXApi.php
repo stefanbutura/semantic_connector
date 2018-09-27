@@ -184,4 +184,23 @@ abstract class SemanticConnectorPPXApi {
 
     return $data_type;
   }
+
+  /**
+   * Extract categories from given data.
+   *
+   * @param string $text
+   *   The text to extract named entities for.
+   * @param string $language
+   *   The iso-code of the language of the data.
+   * @param array $types
+   *   The types of entities to extract.
+   * @param array $parameters
+   *   Additional parameters to forward to the API.
+   *
+   * @return array
+   *   An array of named entity objects.
+   */
+  public function extractNamedEntities($text, $language, array $types, $parameters = []) {
+    return [];
+  }
 }
