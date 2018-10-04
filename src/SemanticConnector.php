@@ -541,10 +541,10 @@ class SemanticConnector {
             }
             $hidden_box_content = '';
             if (isset($concept['alt_labels']) && !empty($concept['alt_labels'])) {
-              $hidden_box_content .= $concept['alt_labels'];
+              $hidden_box_content .= implode(', ', $concept['alt_labels']);
             }
             if (isset($concept['hidden_labels']) && !empty($concept['hidden_labels'])) {
-              $hidden_box_content .= (!empty($hidden_box_content) ? ',' : '') . $concept['hidden_labels'];
+              $hidden_box_content .= (!empty($hidden_box_content) ? ',' : '') . implode(', ', $concept['hidden_labels']);
             }
             $themed_item_content .= '</li></ul>' . (!empty($hidden_box_content) ? '<div class="semantic-connector-concept-hidden-box">' . $hidden_box_content . '</div>' : '') . '</div>';
           }

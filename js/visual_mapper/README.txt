@@ -1,6 +1,10 @@
 Visual Mapper
 
 Changelog:
+1.7.1 (03.10.2018)
+- Fixed multiple bugs when updating the concept directly via ID in the tree
+  view, data gets merged correctly now.
+
 1.7 (04.09.2018)
 - Made multiple VisualMapper instances on the same page possible by converting
   all IDs and general selections into classes and instance-specific selections

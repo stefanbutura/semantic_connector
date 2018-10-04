@@ -135,3 +135,17 @@ table.semantic-connector-tablesorter thead tr .headerSortUp {
 .semantic-connector-concept-hidden-box {
   display: none;
 }
+
+/* =============================================================================
+ *   Semantic Connector - Shared Elements
+ * ========================================================================== */
+
+.ui-autocomplete .ui-menu-item-metadata {
+  font-size: 80%;
+  color: #999;
+  margin-left: 15px;
+}
+
+.ui-autocomplete .ui-menu-item-metadata-label {
+  margin: 0 5px 0 -5px;
+}
