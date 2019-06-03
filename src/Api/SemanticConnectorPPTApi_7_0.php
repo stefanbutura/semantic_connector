@@ -37,7 +37,7 @@ class SemanticConnectorPPTApi_7_0 extends SemanticConnectorPPTApi_6_2 {
   public function addLiteral($project_id, $concept_uri, $property, $label, $language = NULL) {
     $resource_path = $this->getApiPath() . 'thesaurus/' . $project_id . '/addLiteral';
     $post_parameters = array(
-      'resourceUri' => $concept_uri,
+      'resource' => $concept_uri,
       'label' => $label,
       'property' => $property,
     );

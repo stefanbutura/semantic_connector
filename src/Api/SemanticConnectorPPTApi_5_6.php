@@ -436,6 +436,9 @@ class SemanticConnectorPPTApi_5_6 extends SemanticConnectorPPTApi_5_3 {
     $result = $this->connection->get($resource_path, array(
       'query' => $get_parameters,
     ));
+    if ($result === FALSE) {
+      return [];
+    }
 
     return Json::decode($result);
   }
