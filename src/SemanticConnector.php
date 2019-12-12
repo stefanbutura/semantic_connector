@@ -6,7 +6,6 @@
  */
 
 namespace Drupal\semantic_connector;
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
@@ -18,7 +17,6 @@ use Drupal\semantic_connector\Entity\SemanticConnectorConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorPPServerConnection;
 use Drupal\semantic_connector\Entity\SemanticConnectorSparqlEndpointConnection;
 use Drupal\smart_glossary\Entity\SmartGlossaryConfig;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 
 /**
@@ -671,7 +669,7 @@ class SemanticConnector {
 
     $machine_name = \Drupal::transliteration()
       ->transliterate($title, LanguageInterface::LANGCODE_DEFAULT, '_');
-    $machine_name = str_replace(' ', '_', Unicode::strtolower($machine_name));
+    $machine_name = str_replace(' ', '_', mb_strtolower($machine_name));
 
     $entity_ids = \Drupal::entityQuery($entity_id)
       ->condition('id', $machine_name, 'STARTS_WITH')
