@@ -231,23 +231,30 @@ class SemanticConnectorCurlConnection {
     }
 
     // Make the request.
-    $response = curl_exec($ch);
+    $response_raw = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     // There has been an error.
     if ($http_code != 200) {
       // Log the error.
       $error = curl_error($ch);
-      $response = Json::decode($response);
+      $response = Json::decode($response_raw);
+      // The error is not cURL-specific.
       if (empty($error)) {
-        if (isset($response['message'])) {
-          $error = $response['message'];
+        if ($response) {
+          if (isset($response['message'])) {
+            $error = $response['message'];
+          }
+          elseif (isset($response['errorMessage'])) {
+            $error = $response['errorMessage'];
+          }
         }
-        elseif (isset($response['errorMessage'])) {
-          $error = $response['errorMessage'];
+        // In case the response can't be parsed as JSON, return the raw HTML.
+        else {
+          $error = $response_raw;
         }
       }
-      $this->watchdog($method, $error, curl_errno($ch), $url);
+      $this->watchdog($method, $error, $http_code, $url);
 
       // Close the cURL request.
       curl_close($ch);
@@ -259,7 +266,7 @@ class SemanticConnectorCurlConnection {
     curl_close($ch);
 
     // No error occurred, return the response.
-    return $response;
+    return $response_raw;
   }
 
   /**
