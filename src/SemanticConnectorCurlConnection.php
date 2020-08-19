@@ -248,6 +248,9 @@ class SemanticConnectorCurlConnection {
           elseif (isset($response['errorMessage'])) {
             $error = $response['errorMessage'];
           }
+          elseif (isset($response['responseBase']) && isset($response['responseBase']['message'])) {
+            $error = $response['responseBase']['message'];
+          }
         }
         // In case the response can't be parsed as JSON, return the raw HTML.
         else {
