@@ -310,7 +310,7 @@ class SemanticConnectorController extends ControllerBase {
       foreach ($sparql_endpoint_connections as $sparql_endpoint_connection) {
         $sparql_connection_use_content = '';
         $sparql_endpoint_config = $sparql_endpoint_connection->getConfig();
-        if ($sparql_endpoint_config['pp_server_id'] == 0) {
+        if (isset($sparql_endpoint_config['pp_server_id']) && $sparql_endpoint_config['pp_server_id'] == 0) {
           $title = '<div class="semantic-connector-led" data-server-id="' . $sparql_endpoint_connection->id() . '" data-server-type="sparql-endpoint" title="' . t('Checking service') . '"></div>';
           $title .= Link::fromTextAndUrl($sparql_endpoint_connection->getTitle(), Url::fromUri($sparql_endpoint_connection->getUrl(), array('attributes' => array('target' => array('_blank')))))->toString();
 

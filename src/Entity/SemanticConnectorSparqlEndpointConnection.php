@@ -70,7 +70,7 @@ class SemanticConnectorSparqlEndpointConnection extends SemanticConnectorConnect
       return FALSE;
     }
 
-    return ($row->numRows() == 0) ? FALSE : TRUE;
+    return ($row && method_exists($row, 'numRows') && $row->numRows() > 0);
   }
 
   /**
