@@ -8,6 +8,7 @@
 namespace Drupal\semantic_connector;
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 use Drupal\semantic_connector\Entity\SemanticConnectorConnectionInterface;
+use Drupal\Core\Entity\EntityInterface;
 
 class ConnectionListBuilder extends ConfigEntityListBuilder
 {
@@ -22,7 +23,7 @@ class ConnectionListBuilder extends ConfigEntityListBuilder
   /**
    * {@inheritdoc}
    */
-  public function buildRow(SemanticConnectorConnectionInterface $entity) {
+  public function buildRow(EntityInterface $entity) {
     $row['title'] = $entity->get('title');
     $row['type'] = $entity->get('type');
     return $row + parent::buildRow($entity);
