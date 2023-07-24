@@ -122,10 +122,14 @@ class SemanticConnectorPPServerConnection extends SemanticConnectorConnection {
 
     // Remove SPARQL-endpoints, that do not exist anymore.
     if (!empty($sparql_endpoints_to_remove)) {
-      $connections_query = \Drupal::entityQuery('sparql_endpoint');
-      $delete_connection_ids = $connections_query->condition('url', $sparql_endpoints_to_remove, 'IN')->execute();
+      try {
+        $connections_query = \Drupal::entityQuery('sparql_endpoint');
+        $delete_connection_ids = $connections_query->condition('url', $sparql_endpoints_to_remove, 'IN')
+          ->execute();
+      }
+      catch (\Exception $e) {
 
-      SemanticConnector::deleteConnections('sparql_endpoint', $delete_connection_ids);
+      }
     }
   }
 
