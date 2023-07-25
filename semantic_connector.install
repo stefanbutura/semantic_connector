@@ -5,6 +5,8 @@
  * Install, update and uninstall functions for the Semantic Connector module.
  */
 
+use Drupal\semantic_connector\SemanticConnector;
+
 /**
  * Adds the global notification default values.
  */
@@ -85,4 +87,19 @@ function semantic_connector_update_8103() {
       }
     }
   }
+}
+
+/**
+ * Move global_notifications and global_notifications_last_check to State API.
+ */
+function semantic_connector_update_8104() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('semantic_connector.settings');
+
+  SemanticConnector::setGlobalNotifications($config->get('global_notifications') ?? []);
+  SemanticConnector::setLastNotificationCheckTime($config->get('global_notifications_last_check') ?? time());
+
+  $config->clear('global_notifications');
+  $config->clear('global_notifications_last_check');
+  $config->save(TRUE);
 }

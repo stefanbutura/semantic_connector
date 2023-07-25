@@ -737,6 +737,46 @@ class SemanticConnector {
   }
 
   /**
+   * Retrieve the timestamp of the last notification check.
+   *
+   * @return string
+   *   The timestamp of the last notification check.
+   */
+  public static function getLastNotificationCheckTime() {
+    return \Drupal::state()->get('semantic_connector.global_notification_last_check');
+  }
+
+  /**
+   * Set the last notification check timestamp.
+   *
+   * @param string $timestamp
+   *   The timestamp.
+   */
+  public static function setLastNotificationCheckTime(string $timestamp) {
+    \Drupal::state()->set('semantic_connector.global_notification_last_check', $timestamp);
+  }
+
+  /**
+   * Get the global notifications.
+   *
+   * @return array
+   *   The global notifications.
+   */
+  public static function getGlobalNotifications() {
+    \Drupal::state()->get('semantic_connector.global_notifications', []);
+  }
+
+  /**
+   * Set the global notifications.
+   *
+   * @param array $notifications
+   *   The notifications.
+   */
+  public static function setGlobalNotifications(array $notifications) {
+    \Drupal::state()->set('semantic_connector.global_notifications', $notifications);
+  }
+
+  /**
    * Check all global notifications.
    *
    * @param bool $force_check
@@ -755,7 +795,7 @@ class SemanticConnector {
 
     if ($notification_config['enabled']) {
       $settings = \Drupal::configFactory()->getEditable('semantic_connector.settings');
-      $last_notification_check = $settings->get('global_notification_last_check');
+      $last_notification_check = static::getLastNotificationCheckTime();
       // Find out if a check is already required.
       if ((time() - $last_notification_check) >= $notification_config['interval'] || $force_check) {
         $actions = self::getGlobalNotificationActions();
@@ -774,7 +814,7 @@ class SemanticConnector {
         }
 
         // Update the notifications and update the notificiation config if required.
-        $settings->set('global_notifications', $notifications);
+        static::setGlobalNotifications($notifications);
         if ($notification_config_update_required) {
           $settings->set('notifications', $notification_config);
         }
@@ -789,12 +829,12 @@ class SemanticConnector {
         }
 
         // Set the current timestamp as last check and update the notifications.
-        $settings->set('global_notification_last_check', time());
+        static::setLastNotificationCheckTime(time());
         $settings->save();
       }
       // If no check is required use the existing notifications.
       else {
-        $notifications = \Drupal::config('semantic_connector.settings')->get('global_notifications');
+        $notifications = static::getGlobalNotifications();
       }
     }
 
